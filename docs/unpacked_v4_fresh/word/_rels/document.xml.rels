@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">
+  <Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/styles" Target="styles.xml"/>
+  <Relationship Id="rId2" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/numbering" Target="numbering.xml"/>
+  <Relationship Id="rId3" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/footnotes" Target="footnotes.xml"/>
+  <Relationship Id="rId4" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/endnotes" Target="endnotes.xml"/>
+  <Relationship Id="rId5" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/settings" Target="settings.xml"/>
+  <Relationship Id="rId6" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/comments" Target="comments.xml"/>
+  <Relationship Id="rId7" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/header" Target="header1.xml"/>
+  <Relationship Id="rId8" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/footer" Target="footer1.xml"/>
+  <Relationship Id="rIddnjh0ohjqw0ewapeiv9t6" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/hyperlink" Target="https://www.linkedin.com/in/moinas/" TargetMode="External"/>
+  <Relationship Id="rIdefidm-r2qnviarkrlt3xj" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/hyperlink" Target="https://www.fca.org.uk/financial-lives" TargetMode="External"/>
+  <Relationship Id="rIdjqmjqq6e-pj2qssklgufi" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/hyperlink" Target="https://www.fca.org.uk/financial-lives" TargetMode="External"/>
+  <Relationship Id="rIdsgk1_ord0giqxj8hfcgkp" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/hyperlink" Target="https://www.accenture.com/uk-en/insights/financial-services/fintech" TargetMode="External"/>
+  <Relationship Id="rIdycz_fwjaeymrwa2ntszst" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/hyperlink" Target="https://www.statista.com/topics/3512/fintech-united-kingdom/" TargetMode="External"/>
+  <Relationship Id="rIdrksrctvms53vmlpqsxr5a" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/hyperlink" Target="https://kpmg.com/uk/en/home/insights/2025/02/pulse-of-fintech.html" TargetMode="External"/>
+  <Relationship Id="rIdlcljx2yvkveshggz3kiyu" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/hyperlink" Target="https://www.statista.com/topics/3512/fintech-united-kingdom/" TargetMode="External"/>
+  <Relationship Id="rIdwnan5t5bto2q7jbsb7r2g" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/hyperlink" Target="https://www.ons.gov.uk/economy/grossdomesticproductgdp/timeseries/qdzu/ukea" TargetMode="External"/>
+  <Relationship Id="rIdi4ivvfyqj7zngddztiqd5" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/hyperlink" Target="https://www.oecd.org/financial/education/oecd-infe-2023-international-survey-of-adult-financial-literacy.pdf" TargetMode="External"/>
+  <Relationship Id="rIdjeb5lznq2ryjhlcrqirwf" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/hyperlink" Target="https://www2.deloitte.com/uk/en/pages/financial-services/articles/digital-banking.html" TargetMode="External"/>
+  <Relationship Id="rIdjsaognkn6rskhdr9qwyzm" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/hyperlink" Target="https://withplum.com/pricing" TargetMode="External"/>
+  <Relationship Id="rIdg0eu7sqkck8fp_frunsvf" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/hyperlink" Target="https://getchip.uk/pricing" TargetMode="External"/>
+  <Relationship Id="rId9yqyqe3vam1gvff02w6pp" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/hyperlink" Target="https://monzo.com/pricing" TargetMode="External"/>
+  <Relationship Id="rIdl84o2usqxiu7bm2qetz_4" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/hyperlink" Target="https://www.nutmeg.com/fees" TargetMode="External"/>
+  <Relationship Id="rIddfsid--yg0rs__zigww3m" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/hyperlink" Target="https://www.fca.org.uk/firms/innovation/regulatory-sandbox" TargetMode="External"/>
+  <Relationship Id="rIdru0kv4isrcapl6-cw_hzq" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/hyperlink" Target="https://www.fca.org.uk/firms/appointed-representatives" TargetMode="External"/>
+  <Relationship Id="rIdd-3yyx7wkukcb4q4ci5ko" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/hyperlink" Target="https://www.fca.org.uk/publications/policy-statements/ps22-9-new-consumer-duty" TargetMode="External"/>
+  <Relationship Id="rIdgkd4sif2kswt8ignvyru3" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/hyperlink" Target="https://docs.truelayer.com" TargetMode="External"/>
+  <Relationship Id="rIdgfah7tgqjhaamaadxuapt" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/hyperlink" Target="https://onfido.com" TargetMode="External"/>
+  <Relationship Id="rIdxovostc2qtlov7vwlldj2" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/hyperlink" Target="https://stripe.com/docs/security" TargetMode="External"/>
+  <Relationship Id="rIdyv2g2badj649yj3y7mgju" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/hyperlink" Target="https://www.ukri.org/councils/innovate-uk/guidance-for-applicants/types-of-funding/smart/" TargetMode="External"/>
+  <Relationship Id="rIdrirgtpwxtctlln8a7zkoz" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/hyperlink" Target="https://www.data.ai/en/apps/google-play/top-grossing/finance/united-kingdom/" TargetMode="External"/>
+  <Relationship Id="rIdaojclpgurgf55dejfacix" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/hyperlink" Target="https://www.moneysupermarket.com/savings/statistics/" TargetMode="External"/>
+  <Relationship Id="rIdfwwfedh6-e_isemnmdb9a" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/hyperlink" Target="https://www.legislation.gov.uk/uksi/2017/692/contents" TargetMode="External"/>
+  <Relationship Id="rIdfupsz_p49blep0wffakla" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/hyperlink" Target="https://ico.org.uk/for-organisations/guide-to-data-protection/guide-to-the-general-data-protection-regulation-gdpr/" TargetMode="External"/>
+  <Relationship Id="rIdexla31keonhau4mvsihne" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/hyperlink" Target="https://www.bankofengland.co.uk/research/fintech" TargetMode="External"/>
+  <Relationship Id="rId4z67gh0rdsi0zr9tlx8r6" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/hyperlink" Target="https://www.linkedin.com/in/moinas/" TargetMode="External"/>
+  <Relationship Id="rIdn-eo6xoozpr6pip81kvsb" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/hyperlink" Target="https://moneytothemasses.com/banking/plum-review-is-ai-the-best-way-to-save-and-invest" TargetMode="External"/>
+  <Relationship Id="rIduyfczhedmdjawaufqhf2o" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/hyperlink" Target="https://apps.apple.com/cy/app/plum-smart-saving-investing/id1456139507" TargetMode="External"/>
+  <Relationship Id="rId2acrixbce95bcyinfgyl8" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/hyperlink" Target="https://upthegains.co.uk/blog/plum-app-review" TargetMode="External"/>
+  <Relationship Id="rIdpaq2ox1xanbnfw-i_okbh" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/hyperlink" Target="https://play.google.com/store/apps/details?id=com.withplum.app" TargetMode="External"/>
+  <Relationship Id="rIdtz-vk76w4ynz6mp9jy0vz" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/hyperlink" Target="https://uk.trustpilot.com/review/getchip.uk" TargetMode="External"/>
+  <Relationship Id="rIdjt2cpnh3vz8pfciistpy7" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/hyperlink" Target="https://moneyzine.com/uk/investments/chip-review/" TargetMode="External"/>
+  <Relationship Id="rIdwq6nwh2voic2hkss8q4x-" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/hyperlink" Target="https://smartmoneypeople.com/chip-reviews/product/app" TargetMode="External"/>
+  <Relationship Id="rIdogywb7mtsudqz7g2azgtw" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/hyperlink" Target="https://investinginsiders.co.uk/reviews/chip/" TargetMode="External"/>
+  <Relationship Id="rId-7tyoddxxeghwvxu0zcta" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/hyperlink" Target="https://www.finder.com/uk/digital-banking/chip-app-review" TargetMode="External"/>
+  <Relationship Id="rIdjtdfwxjtpwy8qejwd1odn" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/hyperlink" Target="https://www.finder.com/uk/digital-banking/chip-app-review" TargetMode="External"/>
+  <Relationship Id="rId-quembj_i3zglqnzhpbzb" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/hyperlink" Target="https://www.nutsaboutmoney.com/reviews/chip" TargetMode="External"/>
+  <Relationship Id="rIdrisai0duf_phvou4xrj_a" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/hyperlink" Target="https://investing-reviews.co.uk/reviews/chip-app-review/" TargetMode="External"/>
+  <Relationship Id="rIdcvdi2kidmwfjqlf7hsp3j" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/hyperlink" Target="https://www.wipro.com/about-wipro/" TargetMode="External"/>
+  <Relationship Id="rId49" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/fontTable" Target="fontTable.xml"/>
+</Relationships>

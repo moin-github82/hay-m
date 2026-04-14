@@ -1,0 +1,712 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>HAY-M — App & Website Flowcharts</title>
+<style>
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:'Segoe UI',Arial,sans-serif;background:#0F172A;color:#E2E8F0;min-height:100vh;padding:40px 24px 80px}
+
+  h1{text-align:center;font-size:32px;font-weight:900;color:#fff;margin-bottom:8px;letter-spacing:-1px}
+  .subtitle{text-align:center;color:#64748B;font-size:15px;margin-bottom:56px}
+
+  /* ── Legend ── */
+  .legend{display:flex;gap:20px;flex-wrap:wrap;justify-content:center;margin-bottom:52px}
+  .legend-item{display:flex;align-items:center;gap:8px;font-size:13px;color:#94A3B8}
+  .legend-dot{width:14px;height:14px;border-radius:4px;flex-shrink:0}
+
+  /* ── Section headers ── */
+  .section-wrap{max-width:1400px;margin:0 auto 80px}
+  .section-title{font-size:22px;font-weight:900;color:#fff;margin-bottom:6px;display:flex;align-items:center;gap:10px}
+  .section-sub{color:#64748B;font-size:14px;margin-bottom:36px}
+
+  /* ── Flowchart canvas ── */
+  .flow-canvas{position:relative;width:100%;overflow-x:auto}
+  .flow-inner{display:flex;flex-direction:column;align-items:center;gap:0;min-width:900px;padding:0 40px}
+
+  /* ── Nodes ── */
+  .node{border-radius:14px;padding:11px 22px;font-size:13px;font-weight:700;text-align:center;position:relative;white-space:nowrap;display:inline-flex;align-items:center;gap:7px;min-width:130px;justify-content:center;box-shadow:0 4px 20px rgba(0,0,0,.35)}
+  .node.start   {background:#1E293B;border:2px solid #334155;color:#94A3B8;border-radius:40px}
+  .node.action  {background:#0F3460;border:2px solid #1E4D8C;color:#93C5FD}
+  .node.auth    {background:#1E1245;border:2px solid #3B1F8C;color:#C4B5FD}
+  .node.page    {background:#064E3B;border:2px solid #065F46;color:#6EE7B7}
+  .node.modal   {background:#3B1F06;border:2px solid #7C3F0A;color:#FCD34D}
+  .node.decision{background:#1E3A1F;border:2px solid #166534;color:#86EFAC;border-radius:8px;transform:rotate(0deg)}
+  .node.feature {background:#1A1A3A;border:2px solid #3730A3;color:#A5B4FC}
+  .node.api     {background:#3B0F0F;border:2px solid #7F1D1D;color:#FCA5A5}
+  .node.socket  {background:#1A2E3B;border:2px solid #0C4A6E;color:#7DD3FC}
+  .node.end     {background:#1E293B;border:2px solid #334155;color:#94A3B8;border-radius:40px}
+  .node.tab     {background:#14532D;border:2px solid #166534;color:#4ADE80;border-radius:10px}
+  .node.db      {background:#3B1530;border:2px solid #831843;color:#F9A8D4}
+
+  /* ── Arrows ── */
+  .arrow{display:flex;flex-direction:column;align-items:center;gap:0;margin:0}
+  .arrow-line{width:2px;height:28px;background:linear-gradient(#334155,#475569)}
+  .arrow-head{width:0;height:0;border-left:7px solid transparent;border-right:7px solid transparent;border-top:10px solid #475569}
+  .arrow-label{font-size:11px;color:#64748B;margin:3px 0;font-weight:600}
+
+  /* ── Row layouts ── */
+  .row{display:flex;align-items:flex-start;justify-content:center;gap:20px;width:100%}
+  .col{display:flex;flex-direction:column;align-items:center;gap:0}
+  .branch-wrap{display:flex;gap:0;align-items:flex-start;justify-content:center;width:100%}
+
+  /* ── Horizontal connector lines ── */
+  .h-line{height:2px;background:#334155;flex:1;margin-top:20px}
+  .v-line{width:2px;background:#334155;height:28px}
+
+  /* ── Tab bars ── */
+  .tab-bar{display:flex;gap:8px;background:#0F172A;border:2px solid #1E293B;border-radius:16px;padding:10px 16px;margin:8px 0}
+
+  /* ── Sub-screen group ── */
+  .sub-group{border:1.5px dashed #334155;border-radius:16px;padding:16px 20px;display:flex;flex-direction:column;align-items:center;gap:12px;background:rgba(255,255,255,.02)}
+  .sub-group-title{font-size:11px;font-weight:700;color:#475569;text-transform:uppercase;letter-spacing:1px;margin-bottom:4px}
+
+  /* ── Cards row ── */
+  .cards-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:14px;width:100%;max-width:1100px}
+  .feature-card{background:#0F172A;border:1.5px solid #1E293B;border-radius:14px;padding:16px;display:flex;flex-direction:column;gap:8px}
+  .feature-card h4{font-size:13px;font-weight:800;color:#E2E8F0;display:flex;align-items:center;gap:6px}
+  .feature-card ul{list-style:none;padding:0}
+  .feature-card ul li{font-size:12px;color:#64748B;padding:3px 0;display:flex;align-items:center;gap:6px}
+  .feature-card ul li::before{content:'→';color:#475569;font-size:11px}
+
+  /* ── Two column layout ── */
+  .two-col{display:grid;grid-template-columns:1fr 1fr;gap:48px;max-width:1400px;margin:0 auto}
+  @media(max-width:900px){.two-col{grid-template-columns:1fr}}
+
+  /* ── API table ── */
+  .api-table{width:100%;border-collapse:collapse;font-size:13px}
+  .api-table th{background:#1E293B;color:#94A3B8;padding:10px 14px;text-align:left;font-size:11px;text-transform:uppercase;letter-spacing:.5px}
+  .api-table td{padding:10px 14px;border-bottom:1px solid #1E293B;color:#CBD5E1;vertical-align:top}
+  .api-table tr:hover td{background:#0F172A}
+  .method{display:inline-block;padding:2px 8px;border-radius:5px;font-size:11px;font-weight:700}
+  .get   {background:#064E3B;color:#6EE7B7}
+  .post  {background:#1E3A5F;color:#93C5FD}
+  .patch {background:#3B1F06;color:#FCD34D}
+  .delete{background:#3B0F0F;color:#FCA5A5}
+
+  /* ── Divider ── */
+  .divider{width:100%;max-width:1400px;margin:0 auto 56px;border:none;border-top:1px solid #1E293B}
+
+  /* ── Print hint ── */
+  .print-hint{text-align:center;font-size:13px;color:#334155;margin-top:40px}
+</style>
+</head>
+<body>
+
+<h1>HAY-M — System Flowcharts</h1>
+<p class="subtitle">Mobile App · Website · Backend API · Data Flow</p>
+
+<!-- Legend -->
+<div class="legend">
+  <div class="legend-item"><div class="legend-dot" style="background:#0F3460;border:2px solid #1E4D8C"></div>Screen / Page</div>
+  <div class="legend-item"><div class="legend-dot" style="background:#1E1245;border:2px solid #3B1F8C"></div>Authentication</div>
+  <div class="legend-item"><div class="legend-dot" style="background:#064E3B;border:2px solid #065F46"></div>Protected Page</div>
+  <div class="legend-item"><div class="legend-dot" style="background:#3B1F06;border:2px solid #7C3F0A"></div>Modal / Overlay</div>
+  <div class="legend-item"><div class="legend-dot" style="background:#3B0F0F;border:2px solid #7F1D1D"></div>API Endpoint</div>
+  <div class="legend-item"><div class="legend-dot" style="background:#14532D;border:2px solid #166534"></div>Tab / Sub-section</div>
+  <div class="legend-item"><div class="legend-dot" style="background:#3B1530;border:2px solid #831843"></div>Database</div>
+</div>
+
+
+<!-- ═══════════════════════════════════════════════════════════════ -->
+<!-- TWO COLUMN: MOBILE + WEBSITE                                   -->
+<!-- ═══════════════════════════════════════════════════════════════ -->
+<div class="two-col">
+
+  <!-- ─── MOBILE APP ─────────────────────────────────── -->
+  <div>
+    <div class="section-title">📱 Mobile App Flow <span style="font-size:13px;font-weight:500;color:#64748B">(React Native · Expo)</span></div>
+    <div class="section-sub">Authentication → Tab Navigation → Screen Actions</div>
+
+    <div class="flow-canvas">
+    <div class="flow-inner">
+
+      <!-- START -->
+      <div class="node start">🚀 App Launch</div>
+      <div class="arrow"><div class="arrow-line"></div><div class="arrow-head"></div></div>
+
+      <!-- SPLASH -->
+      <div class="node action">✨ SplashScreen<br/><span style="font-size:11px;font-weight:400;opacity:.7">2.8s animation</span></div>
+      <div class="arrow"><div class="arrow-line"></div><div class="arrow-head"></div></div>
+
+      <!-- AUTH CHECK -->
+      <div class="node decision">🔐 Token in AsyncStorage?</div>
+
+      <!-- Branch row -->
+      <div style="display:flex;width:100%;justify-content:center;gap:60px;margin-top:8px">
+        <!-- NO branch -->
+        <div class="col">
+          <div style="display:flex;flex-direction:column;align-items:center">
+            <div class="arrow-label" style="color:#EF4444">✗ No</div>
+            <div class="v-line" style="background:#EF4444;opacity:.5"></div>
+            <div class="arrow-head"></div>
+          </div>
+          <!-- Login -->
+          <div class="node auth" style="margin-top:4px">🔑 LoginScreen</div>
+          <div class="arrow"><div class="arrow-line"></div><div class="arrow-head"></div></div>
+          <div class="node auth" style="font-size:12px">📝 SignupScreen</div>
+          <div style="font-size:11px;color:#64748B;margin:6px 0">or</div>
+          <div class="node api" style="font-size:12px">POST /auth/login<br/>POST /auth/signup</div>
+          <div class="arrow"><div class="arrow-line"></div><div class="arrow-head"></div></div>
+          <div class="node feature" style="font-size:12px">💾 Store token + user<br/>AsyncStorage</div>
+        </div>
+
+        <!-- YES branch -->
+        <div class="col">
+          <div style="display:flex;flex-direction:column;align-items:center">
+            <div class="arrow-label" style="color:#10B981">✓ Yes</div>
+            <div class="v-line" style="background:#10B981;opacity:.5"></div>
+            <div class="arrow-head"></div>
+          </div>
+          <div class="node feature" style="margin-top:4px;font-size:12px">✅ Validate token<br/>GET /auth/me</div>
+          <div class="arrow"><div class="arrow-line"></div><div class="arrow-head"></div></div>
+          <div class="node feature" style="font-size:12px">👤 Restore user<br/>in AuthContext</div>
+        </div>
+      </div>
+
+      <!-- Merge arrow -->
+      <div class="arrow" style="margin-top:20px"><div class="arrow-line"></div><div class="arrow-head"></div></div>
+
+      <!-- TAB NAVIGATOR -->
+      <div class="node action" style="font-size:14px;padding:13px 28px">📲 Main Tab Navigator</div>
+      <div class="arrow"><div class="arrow-line"></div><div class="arrow-head"></div></div>
+
+      <!-- 5 TABS -->
+      <div class="tab-bar">
+        <div class="node tab" style="font-size:11px;padding:7px 12px">🏠 Dash</div>
+        <div class="node tab" style="font-size:11px;padding:7px 12px">💰 Savings</div>
+        <div class="node tab" style="font-size:11px;padding:7px 12px">📈 Portfolio</div>
+        <div class="node tab" style="font-size:11px;padding:7px 12px">💳 Payments</div>
+        <div class="node tab" style="font-size:11px;padding:7px 12px">👤 Profile</div>
+      </div>
+      <div class="arrow"><div class="arrow-line" style="height:14px"></div><div class="arrow-head"></div></div>
+
+      <!-- SCREEN CARDS -->
+      <div class="cards-row" style="gap:10px">
+
+        <!-- Dashboard -->
+        <div class="feature-card">
+          <h4>🏠 Dashboard</h4>
+          <ul>
+            <li>Balance card (toggle)</li>
+            <li>Quick actions ×4</li>
+            <li>Micro-saves summary</li>
+            <li>Goals overview</li>
+            <li>Recent transactions</li>
+            <li>Pull-to-refresh</li>
+          </ul>
+          <div class="node api" style="font-size:11px;padding:5px 10px;margin-top:4px">GET /dashboard<br/>GET /savings-tracker</div>
+        </div>
+
+        <!-- Savings -->
+        <div class="feature-card">
+          <h4>💰 Savings</h4>
+          <div class="node tab" style="font-size:11px;padding:5px 10px;margin:4px 0">Sub-tabs: Tracker · Goals</div>
+          <ul>
+            <li>Daily / monthly rings</li>
+            <li>Round-up history</li>
+            <li>Manual save</li>
+            <li>Create goals</li>
+            <li>Add funds to goal</li>
+            <li>Progress bars</li>
+          </ul>
+          <div class="node api" style="font-size:11px;padding:5px 10px;margin-top:4px">GET /savings-tracker<br/>GET /goals</div>
+        </div>
+
+        <!-- Portfolio -->
+        <div class="feature-card">
+          <h4>📈 Portfolio</h4>
+          <ul>
+            <li>Total value</li>
+            <li>Period tabs (1W–All)</li>
+            <li>Bar chart</li>
+            <li>Asset allocation</li>
+            <li>Holdings list</li>
+            <li>Live prices</li>
+          </ul>
+          <div class="node api" style="font-size:11px;padding:5px 10px;margin-top:4px">GET /portfolio<br/>PATCH /portfolio/prices</div>
+        </div>
+
+        <!-- Payments -->
+        <div class="feature-card">
+          <h4>💳 Payments & Wallet</h4>
+          <div class="node tab" style="font-size:11px;padding:5px 10px;margin:4px 0">Sub-tabs: Payments · Wallet</div>
+          <ul>
+            <li>Send money</li>
+            <li>Transaction history</li>
+            <li>Card management</li>
+            <li>Link bank account</li>
+            <li>Top-up card</li>
+            <li>Freeze / set default</li>
+          </ul>
+          <div class="node api" style="font-size:11px;padding:5px 10px;margin-top:4px">GET /wallet<br/>POST /transactions/send</div>
+        </div>
+
+        <!-- Profile -->
+        <div class="feature-card">
+          <h4>👤 Profile</h4>
+          <ul>
+            <li>Edit name & phone</li>
+            <li>Notifications</li>
+            <li>Security settings</li>
+            <li>Help & support</li>
+            <li>Terms & privacy</li>
+            <li>Logout</li>
+          </ul>
+          <div class="node api" style="font-size:11px;padding:5px 10px;margin-top:4px">GET /auth/me<br/>PATCH /auth/me</div>
+        </div>
+      </div>
+
+      <!-- Real-time -->
+      <div class="arrow" style="margin-top:20px"><div class="arrow-line"></div><div class="arrow-head"></div></div>
+      <div class="node socket">⚡ WebSocket — Real-time Updates<br/>
+        <span style="font-size:11px;font-weight:400;opacity:.8">balance · transactions · portfolio prices</span>
+      </div>
+
+    </div>
+    </div>
+  </div><!-- end mobile col -->
+
+
+  <!-- ─── WEBSITE ─────────────────────────────────────── -->
+  <div>
+    <div class="section-title">🌐 Website Flow <span style="font-size:13px;font-weight:500;color:#64748B">(React · Vite · hay-m.com)</span></div>
+    <div class="section-sub">Landing → Authentication → Protected Dashboard</div>
+
+    <div class="flow-canvas">
+    <div class="flow-inner">
+
+      <!-- START -->
+      <div class="node start">🌍 Visit hay-m.com</div>
+      <div class="arrow"><div class="arrow-line"></div><div class="arrow-head"></div></div>
+
+      <!-- LANDING PAGE -->
+      <div class="node action">🏠 LandingPage<br/>
+        <span style="font-size:11px;font-weight:400;opacity:.7">Hero · Features · How it works · Stats</span>
+      </div>
+      <div class="arrow"><div class="arrow-line"></div><div class="arrow-head"></div></div>
+
+      <!-- ROUTE BRANCHES -->
+      <div class="node decision">Where does the user go?</div>
+
+      <div style="display:flex;width:100%;justify-content:center;gap:16px;margin-top:8px;flex-wrap:wrap">
+
+        <!-- Contact -->
+        <div class="col">
+          <div style="display:flex;flex-direction:column;align-items:center">
+            <div class="arrow-label">Contact</div>
+            <div class="v-line"></div><div class="arrow-head"></div>
+          </div>
+          <div class="node page" style="margin-top:4px;font-size:12px">📬 /contact</div>
+        </div>
+
+        <!-- Login -->
+        <div class="col">
+          <div style="display:flex;flex-direction:column;align-items:center">
+            <div class="arrow-label">Login</div>
+            <div class="v-line"></div><div class="arrow-head"></div>
+          </div>
+          <div class="node auth" style="margin-top:4px;font-size:12px">🔑 /login</div>
+          <div class="arrow"><div class="arrow-line" style="height:16px"></div><div class="arrow-head"></div></div>
+          <div class="node api" style="font-size:11px;padding:5px 10px">POST /auth/login</div>
+          <div class="arrow"><div class="arrow-line" style="height:16px"></div><div class="arrow-head"></div></div>
+          <div class="node feature" style="font-size:11px;padding:5px 10px">Token → sessionStorage<br/>User → localStorage</div>
+        </div>
+
+        <!-- Signup -->
+        <div class="col">
+          <div style="display:flex;flex-direction:column;align-items:center">
+            <div class="arrow-label">Sign up</div>
+            <div class="v-line"></div><div class="arrow-head"></div>
+          </div>
+          <div class="node auth" style="margin-top:4px;font-size:12px">📝 /signup</div>
+          <div class="arrow"><div class="arrow-line" style="height:16px"></div><div class="arrow-head"></div></div>
+          <div class="node api" style="font-size:11px;padding:5px 10px">POST /auth/signup</div>
+          <div class="arrow"><div class="arrow-line" style="height:16px"></div><div class="arrow-head"></div></div>
+          <div class="node feature" style="font-size:11px;padding:5px 10px">Auto-login<br/>→ /dashboard</div>
+        </div>
+      </div>
+
+      <!-- Auth check -->
+      <div class="arrow" style="margin-top:24px"><div class="arrow-line"></div><div class="arrow-head"></div></div>
+      <div class="node decision">🔐 PrivateRoute — Token valid?</div>
+
+      <div style="display:flex;width:100%;justify-content:center;gap:60px;margin-top:8px">
+        <div class="col">
+          <div style="display:flex;flex-direction:column;align-items:center">
+            <div class="arrow-label" style="color:#EF4444">✗ No</div>
+            <div class="v-line" style="background:#EF4444;opacity:.5"></div><div class="arrow-head"></div>
+          </div>
+          <div class="node auth" style="font-size:12px;margin-top:4px">→ /login</div>
+        </div>
+        <div class="col">
+          <div style="display:flex;flex-direction:column;align-items:center">
+            <div class="arrow-label" style="color:#10B981">✓ Yes</div>
+            <div class="v-line" style="background:#10B981;opacity:.5"></div><div class="arrow-head"></div>
+          </div>
+          <div class="node feature" style="font-size:12px;margin-top:4px">GET /auth/me ✓</div>
+        </div>
+      </div>
+
+      <!-- LAYOUT -->
+      <div class="arrow" style="margin-top:20px"><div class="arrow-line"></div><div class="arrow-head"></div></div>
+      <div class="node action" style="font-size:14px;padding:13px 28px">🖥️ App Layout — Sidebar Navigation</div>
+      <div class="arrow"><div class="arrow-line"></div><div class="arrow-head"></div></div>
+
+      <!-- SIDEBAR ITEMS -->
+      <div class="tab-bar" style="flex-direction:column;align-items:flex-start;gap:6px;min-width:200px">
+        <div class="node tab" style="font-size:11px;padding:7px 14px;width:100%">🏠 /dashboard</div>
+        <div class="node tab" style="font-size:11px;padding:7px 14px;width:100%">💳 /wallet</div>
+        <div class="node tab" style="font-size:11px;padding:7px 14px;width:100%">🎯 /goals</div>
+        <div class="node tab" style="font-size:11px;padding:7px 14px;width:100%">💰 /savings</div>
+        <div class="node tab" style="font-size:11px;padding:7px 14px;width:100%">📈 /portfolio</div>
+        <div class="node tab" style="font-size:11px;padding:7px 14px;width:100%">📋 /transactions</div>
+      </div>
+      <div class="arrow"><div class="arrow-line" style="height:14px"></div><div class="arrow-head"></div></div>
+
+      <!-- WEB PAGE CARDS -->
+      <div class="cards-row" style="gap:10px">
+
+        <div class="feature-card">
+          <h4>🏠 Dashboard</h4>
+          <ul>
+            <li>Greeting by time</li>
+            <li>4 stat cards</li>
+            <li>Savings summary</li>
+            <li>Goals overview</li>
+            <li>Recent transactions</li>
+          </ul>
+          <div class="node api" style="font-size:11px;padding:5px 10px;margin-top:4px">GET /dashboard<br/>GET /savings-tracker</div>
+        </div>
+
+        <div class="feature-card">
+          <h4>💳 Wallet</h4>
+          <ul>
+            <li>Payment cards</li>
+            <li>Bank accounts</li>
+            <li>Add card modal</li>
+            <li>Link bank account</li>
+            <li>Top-up modal</li>
+            <li>Set default</li>
+          </ul>
+          <div class="node api" style="font-size:11px;padding:5px 10px;margin-top:4px">GET /cards<br/>POST /cards</div>
+        </div>
+
+        <div class="feature-card">
+          <h4>🎯 Goals</h4>
+          <ul>
+            <li>Goals list</li>
+            <li>Progress rings</li>
+            <li>Create goal modal</li>
+            <li>Add funds modal</li>
+            <li>Balance sources</li>
+          </ul>
+          <div class="node api" style="font-size:11px;padding:5px 10px;margin-top:4px">GET /goals<br/>POST /goals/:id/funds</div>
+        </div>
+
+        <div class="feature-card">
+          <h4>💰 Micro-Savings</h4>
+          <ul>
+            <li>Total saved banner</li>
+            <li>Daily / monthly rings</li>
+            <li>Round-up history</li>
+            <li>Manual save modal</li>
+            <li>Linked bank accounts</li>
+            <li>Set limits modal</li>
+          </ul>
+          <div class="node api" style="font-size:11px;padding:5px 10px;margin-top:4px">GET /savings-tracker<br/>GET /savings-tracker/entries</div>
+        </div>
+
+        <div class="feature-card">
+          <h4>📈 Portfolio</h4>
+          <ul>
+            <li>Portfolio value</li>
+            <li>Period filter</li>
+            <li>Performance chart</li>
+            <li>Allocation grid</li>
+            <li>Holdings table</li>
+          </ul>
+          <div class="node api" style="font-size:11px;padding:5px 10px;margin-top:4px">GET /portfolio</div>
+        </div>
+
+        <div class="feature-card">
+          <h4>📋 Transactions</h4>
+          <ul>
+            <li>Full history</li>
+            <li>Filter by type</li>
+            <li>Search</li>
+            <li>Date range</li>
+            <li>Export</li>
+          </ul>
+          <div class="node api" style="font-size:11px;padding:5px 10px;margin-top:4px">GET /transactions</div>
+        </div>
+      </div>
+
+      <!-- Session -->
+      <div class="arrow" style="margin-top:20px"><div class="arrow-line"></div><div class="arrow-head"></div></div>
+      <div class="node feature">🔒 Session ends on browser close<br/>
+        <span style="font-size:11px;font-weight:400;opacity:.8">Token in sessionStorage — cleared automatically</span>
+      </div>
+
+    </div>
+    </div>
+  </div><!-- end website col -->
+</div><!-- end two-col -->
+
+
+<hr class="divider"/>
+
+<!-- ═══════════════════════════════════════════════════════════════ -->
+<!-- BACKEND API FLOWCHART                                          -->
+<!-- ═══════════════════════════════════════════════════════════════ -->
+<div class="section-wrap">
+  <div class="section-title">⚙️ Backend API Flow <span style="font-size:13px;font-weight:500;color:#64748B">(Express · MongoDB Atlas · Render)</span></div>
+  <div class="section-sub">Every request from app/website goes through this pipeline</div>
+
+  <!-- Request pipeline -->
+  <div class="flow-canvas">
+  <div class="flow-inner">
+
+    <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;justify-content:center">
+      <div class="node action">📱 Mobile App</div>
+      <div style="color:#334155;font-size:20px">→</div>
+      <div class="node page">🌐 Website</div>
+      <div style="color:#334155;font-size:20px">→</div>
+      <div class="node api" style="font-size:14px;padding:13px 24px">⚙️ Express Server<br/>
+        <span style="font-size:11px;opacity:.7">hay-m-backend.onrender.com</span>
+      </div>
+    </div>
+    <div class="arrow"><div class="arrow-line"></div><div class="arrow-head"></div></div>
+
+    <!-- Middleware stack -->
+    <div style="display:flex;gap:12px;flex-wrap:wrap;justify-content:center">
+      <div class="node feature" style="font-size:12px">🌍 CORS<br/><span style="opacity:.7;font-size:11px">hay-m.com · localhost</span></div>
+      <div style="color:#334155;font-size:18px;margin-top:12px">→</div>
+      <div class="node feature" style="font-size:12px">📦 express.json()</div>
+      <div style="color:#334155;font-size:18px;margin-top:12px">→</div>
+      <div class="node feature" style="font-size:12px">🔐 JWT protect<br/><span style="opacity:.7;font-size:11px">Authorization: Bearer</span></div>
+      <div style="color:#334155;font-size:18px;margin-top:12px">→</div>
+      <div class="node feature" style="font-size:12px">🗂️ Route Handler</div>
+      <div style="color:#334155;font-size:18px;margin-top:12px">→</div>
+      <div class="node db" style="font-size:12px">🗄️ MongoDB Atlas<br/><span style="opacity:.7;font-size:11px">haym cluster</span></div>
+    </div>
+
+    <div class="arrow"><div class="arrow-line"></div><div class="arrow-head"></div></div>
+
+    <!-- API endpoints table -->
+    <div style="width:100%;max-width:1100px;background:#0F172A;border:1.5px solid #1E293B;border-radius:16px;overflow:hidden">
+      <table class="api-table">
+        <thead>
+          <tr>
+            <th>Method</th>
+            <th>Endpoint</th>
+            <th>Description</th>
+            <th>Auth</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td><span class="method post">POST</span></td><td>/api/auth/signup</td><td>Register new user, create portfolio</td><td>—</td></tr>
+          <tr><td><span class="method post">POST</span></td><td>/api/auth/login</td><td>Authenticate, return JWT token</td><td>—</td></tr>
+          <tr><td><span class="method get">GET</span></td><td>/api/auth/me</td><td>Get current user (token validation)</td><td>🔐</td></tr>
+          <tr><td><span class="method patch">PATCH</span></td><td>/api/auth/me</td><td>Update profile (name, phone)</td><td>🔐</td></tr>
+          <tr><td><span class="method get">GET</span></td><td>/api/dashboard</td><td>Balance, savings, goals, transactions summary</td><td>🔐</td></tr>
+          <tr><td><span class="method get">GET</span></td><td>/api/cards</td><td>All payment cards + bank accounts</td><td>🔐</td></tr>
+          <tr><td><span class="method post">POST</span></td><td>/api/cards</td><td>Add card or bank account</td><td>🔐</td></tr>
+          <tr><td><span class="method patch">PATCH</span></td><td>/api/cards/:id/default</td><td>Set default card</td><td>🔐</td></tr>
+          <tr><td><span class="method patch">PATCH</span></td><td>/api/cards/:id/freeze</td><td>Toggle freeze/unfreeze card</td><td>🔐</td></tr>
+          <tr><td><span class="method post">POST</span></td><td>/api/cards/:id/topup</td><td>Top up card balance</td><td>🔐</td></tr>
+          <tr><td><span class="method delete">DELETE</span></td><td>/api/cards/:id</td><td>Remove card</td><td>🔐</td></tr>
+          <tr><td><span class="method get">GET</span></td><td>/api/goals</td><td>All savings goals</td><td>🔐</td></tr>
+          <tr><td><span class="method post">POST</span></td><td>/api/goals</td><td>Create savings goal</td><td>🔐</td></tr>
+          <tr><td><span class="method patch">PATCH</span></td><td>/api/goals/:id</td><td>Update goal (name, target, emoji)</td><td>🔐</td></tr>
+          <tr><td><span class="method post">POST</span></td><td>/api/goals/:id/funds</td><td>Add funds from card or micro-savings</td><td>🔐</td></tr>
+          <tr><td><span class="method delete">DELETE</span></td><td>/api/goals/:id</td><td>Delete goal</td><td>🔐</td></tr>
+          <tr><td><span class="method get">GET</span></td><td>/api/savings-tracker</td><td>Tracker data (roundUps, surplus, limits)</td><td>🔐</td></tr>
+          <tr><td><span class="method get">GET</span></td><td>/api/savings-tracker/entries</td><td>Merged + sorted roundUp & surplus history</td><td>🔐</td></tr>
+          <tr><td><span class="method patch">PATCH</span></td><td>/api/savings-tracker/limits</td><td>Set daily / monthly limits</td><td>🔐</td></tr>
+          <tr><td><span class="method post">POST</span></td><td>/api/savings-tracker/manual</td><td>Manual surplus deposit</td><td>🔐</td></tr>
+          <tr><td><span class="method post">POST</span></td><td>/api/savings-tracker/roundup</td><td>Log a round-up transaction</td><td>🔐</td></tr>
+          <tr><td><span class="method get">GET</span></td><td>/api/transactions</td><td>Full transaction history with filters</td><td>🔐</td></tr>
+          <tr><td><span class="method post">POST</span></td><td>/api/transactions/send</td><td>Send money to another user</td><td>🔐</td></tr>
+          <tr><td><span class="method get">GET</span></td><td>/api/portfolio</td><td>Holdings, allocation, history</td><td>🔐</td></tr>
+          <tr><td><span class="method post">POST</span></td><td>/api/portfolio/holdings</td><td>Add holding</td><td>🔐</td></tr>
+          <tr><td><span class="method patch">PATCH</span></td><td>/api/portfolio/prices</td><td>Update live prices</td><td>🔐</td></tr>
+          <tr><td><span class="method delete">DELETE</span></td><td>/api/portfolio/holdings/:id</td><td>Remove holding</td><td>🔐</td></tr>
+          <tr><td><span class="method get">GET</span></td><td>/health</td><td>Health check (Render ping)</td><td>—</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Response + WebSocket -->
+    <div class="arrow"><div class="arrow-line"></div><div class="arrow-head"></div></div>
+    <div style="display:flex;gap:16px;flex-wrap:wrap;justify-content:center;align-items:center">
+      <div class="node page" style="font-size:13px">✅ JSON Response<br/><span style="font-size:11px;opacity:.7">{success, data, message}</span></div>
+      <div style="color:#334155;font-size:18px">+</div>
+      <div class="node socket" style="font-size:13px">⚡ Socket.IO Emit<br/><span style="font-size:11px;opacity:.7">Real-time to user room</span></div>
+    </div>
+
+  </div>
+  </div>
+</div>
+
+
+<hr class="divider"/>
+
+<!-- ═══════════════════════════════════════════════════════════════ -->
+<!-- DATA FLOW DIAGRAM                                              -->
+<!-- ═══════════════════════════════════════════════════════════════ -->
+<div class="section-wrap">
+  <div class="section-title">🔄 Data Flow — Key User Actions</div>
+  <div class="section-sub">Step-by-step for the most important flows</div>
+
+  <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:24px">
+
+    <!-- Login flow -->
+    <div style="background:#0F172A;border:1.5px solid #1E293B;border-radius:18px;padding:24px">
+      <h3 style="font-size:15px;font-weight:800;margin-bottom:16px;color:#C4B5FD">🔑 Login Flow</h3>
+      <div style="display:flex;flex-direction:column;gap:8px">
+        <div class="node auth" style="font-size:12px;justify-content:flex-start">1. Enter email + password</div>
+        <div class="arrow"><div class="arrow-line" style="height:14px"></div><div class="arrow-head"></div></div>
+        <div class="node api" style="font-size:12px;justify-content:flex-start">2. POST /auth/login</div>
+        <div class="arrow"><div class="arrow-line" style="height:14px"></div><div class="arrow-head"></div></div>
+        <div class="node db" style="font-size:12px;justify-content:flex-start">3. bcrypt.compare(password)</div>
+        <div class="arrow"><div class="arrow-line" style="height:14px"></div><div class="arrow-head"></div></div>
+        <div class="node page" style="font-size:12px;justify-content:flex-start">4. Sign JWT (7d expiry)</div>
+        <div class="arrow"><div class="arrow-line" style="height:14px"></div><div class="arrow-head"></div></div>
+        <div class="node feature" style="font-size:12px;justify-content:flex-start">5. Store token (session/async)</div>
+        <div class="arrow"><div class="arrow-line" style="height:14px"></div><div class="arrow-head"></div></div>
+        <div class="node page" style="font-size:12px;justify-content:flex-start">6. Navigate → Dashboard</div>
+      </div>
+    </div>
+
+    <!-- Add funds to goal -->
+    <div style="background:#0F172A;border:1.5px solid #1E293B;border-radius:18px;padding:24px">
+      <h3 style="font-size:15px;font-weight:800;margin-bottom:16px;color:#6EE7B7">🎯 Add Funds to Goal</h3>
+      <div style="display:flex;flex-direction:column;gap:8px">
+        <div class="node page" style="font-size:12px;justify-content:flex-start">1. Select goal + amount</div>
+        <div class="arrow"><div class="arrow-line" style="height:14px"></div><div class="arrow-head"></div></div>
+        <div class="node page" style="font-size:12px;justify-content:flex-start">2. Choose source (card / savings)</div>
+        <div class="arrow"><div class="arrow-line" style="height:14px"></div><div class="arrow-head"></div></div>
+        <div class="node api" style="font-size:12px;justify-content:flex-start">3. POST /goals/:id/funds</div>
+        <div class="arrow"><div class="arrow-line" style="height:14px"></div><div class="arrow-head"></div></div>
+        <div class="node db" style="font-size:12px;justify-content:flex-start">4. Deduct from card/savings</div>
+        <div class="arrow"><div class="arrow-line" style="height:14px"></div><div class="arrow-head"></div></div>
+        <div class="node db" style="font-size:12px;justify-content:flex-start">5. Add to goal.saved</div>
+        <div class="arrow"><div class="arrow-line" style="height:14px"></div><div class="arrow-head"></div></div>
+        <div class="node socket" style="font-size:12px;justify-content:flex-start">6. Emit balance:updated</div>
+      </div>
+    </div>
+
+    <!-- Round-up flow -->
+    <div style="background:#0F172A;border:1.5px solid #1E293B;border-radius:18px;padding:24px">
+      <h3 style="font-size:15px;font-weight:800;margin-bottom:16px;color:#FCD34D">⚡ Round-up Save</h3>
+      <div style="display:flex;flex-direction:column;gap:8px">
+        <div class="node page" style="font-size:12px;justify-content:flex-start">1. User makes a purchase</div>
+        <div class="arrow"><div class="arrow-line" style="height:14px"></div><div class="arrow-head"></div></div>
+        <div class="node modal" style="font-size:12px;justify-content:flex-start">2. App logs spend amount</div>
+        <div class="arrow"><div class="arrow-line" style="height:14px"></div><div class="arrow-head"></div></div>
+        <div class="node api" style="font-size:12px;justify-content:flex-start">3. POST /savings-tracker/roundup</div>
+        <div class="arrow"><div class="arrow-line" style="height:14px"></div><div class="arrow-head"></div></div>
+        <div class="node db" style="font-size:12px;justify-content:flex-start">4. ceil(spend) - spend = saved</div>
+        <div class="arrow"><div class="arrow-line" style="height:14px"></div><div class="arrow-head"></div></div>
+        <div class="node db" style="font-size:12px;justify-content:flex-start">5. Push to roundUps array</div>
+        <div class="arrow"><div class="arrow-line" style="height:14px"></div><div class="arrow-head"></div></div>
+        <div class="node socket" style="font-size:12px;justify-content:flex-start">6. Emit savings:roundUp</div>
+      </div>
+    </div>
+
+    <!-- Send money -->
+    <div style="background:#0F172A;border:1.5px solid #1E293B;border-radius:18px;padding:24px">
+      <h3 style="font-size:15px;font-weight:800;margin-bottom:16px;color:#93C5FD">💸 Send Money</h3>
+      <div style="display:flex;flex-direction:column;gap:8px">
+        <div class="node page" style="font-size:12px;justify-content:flex-start">1. Enter recipient email</div>
+        <div class="arrow"><div class="arrow-line" style="height:14px"></div><div class="arrow-head"></div></div>
+        <div class="node page" style="font-size:12px;justify-content:flex-start">2. Enter amount + note</div>
+        <div class="arrow"><div class="arrow-line" style="height:14px"></div><div class="arrow-head"></div></div>
+        <div class="node api" style="font-size:12px;justify-content:flex-start">3. POST /transactions/send</div>
+        <div class="arrow"><div class="arrow-line" style="height:14px"></div><div class="arrow-head"></div></div>
+        <div class="node db" style="font-size:12px;justify-content:flex-start">4. Debit sender card</div>
+        <div class="arrow"><div class="arrow-line" style="height:14px"></div><div class="arrow-head"></div></div>
+        <div class="node db" style="font-size:12px;justify-content:flex-start">5. Credit recipient card</div>
+        <div class="arrow"><div class="arrow-line" style="height:14px"></div><div class="arrow-head"></div></div>
+        <div class="node socket" style="font-size:12px;justify-content:flex-start">6. Notify both users</div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+
+<!-- Infrastructure -->
+<div class="section-wrap">
+  <div class="section-title">🏗️ Infrastructure</div>
+  <div class="section-sub">Where everything lives</div>
+  <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:16px">
+    <div class="feature-card" style="border-color:#1E4D8C">
+      <h4>📱 Mobile App</h4>
+      <ul>
+        <li>React Native + Expo</li>
+        <li>SDK 55</li>
+        <li>iOS + Android</li>
+        <li>AsyncStorage (session)</li>
+        <li>Socket.IO client</li>
+      </ul>
+    </div>
+    <div class="feature-card" style="border-color:#065F46">
+      <h4>🌐 Website</h4>
+      <ul>
+        <li>React + Vite</li>
+        <li>Hosted on IONOS</li>
+        <li>hay-m.com</li>
+        <li>Apache + .htaccess</li>
+        <li>sessionStorage token</li>
+      </ul>
+    </div>
+    <div class="feature-card" style="border-color:#7F1D1D">
+      <h4>⚙️ Backend API</h4>
+      <ul>
+        <li>Express.js + Node 20</li>
+        <li>Render (free tier)</li>
+        <li>Socket.IO server</li>
+        <li>JWT authentication</li>
+        <li>bcrypt passwords</li>
+      </ul>
+    </div>
+    <div class="feature-card" style="border-color:#831843">
+      <h4>🗄️ Database</h4>
+      <ul>
+        <li>MongoDB Atlas M0</li>
+        <li>Mongoose ODM</li>
+        <li>Free forever tier</li>
+        <li>Cloud hosted</li>
+        <li>Auto-backups</li>
+      </ul>
+    </div>
+    <div class="feature-card" style="border-color:#0C4A6E">
+      <h4>⚡ Real-time</h4>
+      <ul>
+        <li>Socket.IO</li>
+        <li>User rooms by ID</li>
+        <li>Balance updates</li>
+        <li>Transaction alerts</li>
+        <li>Portfolio prices</li>
+      </ul>
+    </div>
+    <div class="feature-card" style="border-color:#334155">
+      <h4>🔒 Security</h4>
+      <ul>
+        <li>JWT (7d expiry)</li>
+        <li>bcryptjs hashing</li>
+        <li>CORS whitelist</li>
+        <li>Session per browser tab</li>
+        <li>express-validator</li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<p class="print-hint">💡 Open in browser · Ctrl+P to print or save as PDF · Use landscape orientation for best results</p>
+
+</body>
+</html>

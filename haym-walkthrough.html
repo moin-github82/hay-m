@@ -1,0 +1,1087 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>HAY-M — App & Website Walkthrough</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Segoe UI',Arial,sans-serif;background:#060E1A;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;min-height:100vh;padding:28px 16px 48px;color:#fff}
+
+/* ── HEADER ── */
+.page-header{text-align:center;margin-bottom:20px}
+.page-header h1{font-size:22px;font-weight:900;color:#00D4A1;letter-spacing:-.5px}
+.page-header p{font-size:13px;color:rgba(255,255,255,.4);margin-top:4px}
+
+/* ── PLAYER ── */
+#player-wrapper{width:100%;max-width:900px}
+#stage{width:100%;aspect-ratio:16/9;background:#0A1628;border-radius:16px 16px 0 0;overflow:hidden;position:relative;border:1px solid rgba(255,255,255,.08);box-shadow:0 24px 80px rgba(0,0,0,.6)}
+.scene{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;opacity:0;transition:opacity .5s ease;overflow:hidden}
+.scene.active{opacity:1}
+.scene-label{position:absolute;top:16px;left:20px;font-size:10px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:#00D4A1;opacity:.7;z-index:50;background:rgba(0,212,161,.08);border:1px solid rgba(0,212,161,.2);padding:3px 10px;border-radius:20px}
+#subtitle-bar{position:absolute;bottom:0;left:0;right:0;background:linear-gradient(transparent,rgba(0,0,0,.85));padding:36px 40px 18px;z-index:100;pointer-events:none}
+#subtitle-text{font-size:14px;color:rgba(255,255,255,.92);text-align:center;line-height:1.55;max-width:680px;margin:0 auto;min-height:40px;text-shadow:0 1px 4px rgba(0,0,0,.9);transition:opacity .25s}
+
+/* ── CONTROLS ── */
+#controls{background:#0F1E30;border:1px solid rgba(255,255,255,.08);border-top:none;border-radius:0 0 16px 16px;padding:10px 18px;display:flex;align-items:center;gap:14px}
+#play-btn{width:34px;height:34px;border-radius:50%;background:#00D4A1;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:background .2s}
+#play-btn:hover{background:#00B888}
+#play-btn svg{width:13px;height:13px;fill:#0A1628;display:block}
+#progress-wrap{flex:1;height:4px;background:rgba(255,255,255,.1);border-radius:2px;cursor:pointer;position:relative}
+#progress-fill{height:100%;background:linear-gradient(90deg,#00D4A1,#3B82F6);border-radius:2px;width:0%;transition:width .1s linear;pointer-events:none}
+#timer{font-size:11px;color:rgba(255,255,255,.4);min-width:86px;text-align:right;font-variant-numeric:tabular-nums}
+#scene-dots{display:flex;gap:4px;align-items:center}
+.sdot{width:6px;height:6px;border-radius:50%;background:rgba(255,255,255,.2);cursor:pointer;transition:all .2s;flex-shrink:0}
+.sdot.active{background:#00D4A1;width:16px;border-radius:3px}
+
+/* ── VOICEOVER SCRIPT ── */
+#script-section{width:100%;max-width:900px;margin-top:28px;background:#0F1E30;border:1px solid rgba(255,255,255,.08);border-radius:16px;padding:22px 26px}
+#script-section h2{font-size:12px;font-weight:800;color:#00D4A1;letter-spacing:2px;text-transform:uppercase;margin-bottom:16px}
+.sline{display:grid;grid-template-columns:48px 130px 1fr;gap:12px;padding:9px 0;border-bottom:1px solid rgba(255,255,255,.05);font-size:12px;cursor:pointer;transition:background .15s;border-radius:6px;padding-left:6px}
+.sline:hover{background:rgba(0,212,161,.05)}
+.sline:last-child{border-bottom:none}
+.sline.playing{background:rgba(0,212,161,.1)}
+.sl-ts{color:#00D4A1;font-weight:700;font-variant-numeric:tabular-nums;padding-top:1px}
+.sl-name{color:rgba(255,255,255,.35);font-size:10px;text-transform:uppercase;letter-spacing:.5px;padding-top:2px}
+.sl-text{color:rgba(255,255,255,.72);line-height:1.55}
+
+/* ── EXPORT NOTE ── */
+.export-note{width:100%;max-width:900px;margin-top:16px;background:rgba(59,130,246,.08);border:1px solid rgba(59,130,246,.2);border-radius:12px;padding:14px 20px;display:flex;gap:12px;align-items:flex-start}
+.export-note .note-icon{font-size:18px;flex-shrink:0;margin-top:1px}
+.export-note p{font-size:12px;color:rgba(255,255,255,.6);line-height:1.6}
+.export-note strong{color:#3B82F6}
+
+/* ══════════════════════════════════════════════
+   SHARED ANIMATION KEYFRAMES
+   ══════════════════════════════════════════════ */
+@keyframes slide-up{from{transform:translateY(22px);opacity:0}to{transform:translateY(0);opacity:1}}
+@keyframes slide-in-left{from{transform:translateX(-28px);opacity:0}to{transform:translateX(0);opacity:1}}
+@keyframes scale-in{from{transform:scale(.88);opacity:0}to{transform:scale(1);opacity:1}}
+@keyframes logo-pulse{0%,100%{box-shadow:0 0 40px rgba(0,212,161,.2)}50%{box-shadow:0 0 80px rgba(0,212,161,.45)}}
+@keyframes badge-pop{from{transform:scale(.6);opacity:0}to{transform:scale(1);opacity:1}}
+@keyframes fill-bar{from{width:0}}
+@keyframes spin-in{from{transform:scale(0) rotate(-180deg);opacity:0}to{transform:scale(1) rotate(0);opacity:1}}
+@keyframes float-dot{0%{opacity:0;transform:translateY(0) scale(1)}25%{opacity:.6}80%{opacity:.25}100%{opacity:0;transform:translateY(-70px) scale(.4)}}
+@keyframes phone-drop{from{transform:translateY(-36px) scale(.88);opacity:0}to{transform:translateY(0) scale(1);opacity:1}}
+@keyframes flash-green{0%{background:rgba(0,212,161,.5)}100%{background:rgba(0,212,161,.12)}}
+@keyframes sync-pulse{0%,100%{box-shadow:0 0 0 0 rgba(0,212,161,.4)}50%{box-shadow:0 0 0 14px rgba(0,212,161,0)}}
+@keyframes arrow-r{0%,100%{transform:translateX(0);opacity:.35}50%{transform:translateX(7px);opacity:1}}
+@keyframes arrow-l{0%,100%{transform:translateX(0);opacity:.35}50%{transform:translateX(-7px);opacity:1}}
+@keyframes count-bounce{0%,100%{transform:scale(1)}50%{transform:scale(1.08)}}
+
+/* ══════════════════════════════════════════════
+   SCENE 1 — INTRO
+   ══════════════════════════════════════════════ */
+.s-intro{background:radial-gradient(ellipse at 50% 55%,#1A3560 0%,#0A1628 65%)}
+.s-intro .dots-bg{position:absolute;inset:0;pointer-events:none}
+.dot-p{position:absolute;width:3px;height:3px;border-radius:50%;background:#00D4A1;opacity:0;animation:float-dot 3.5s ease-in-out infinite}
+.s-intro .logo-icon{width:96px;height:96px;border-radius:26px;background:linear-gradient(135deg,#1A3560,#0A1628);border:2px solid rgba(0,212,161,.35);display:flex;align-items:center;justify-content:center;margin-bottom:18px;box-shadow:0 0 60px rgba(0,212,161,.25);animation:logo-pulse 2s ease-in-out infinite;flex-shrink:0}
+.s-intro .brand-name{font-size:60px;font-weight:900;letter-spacing:-2px;color:#fff;animation:slide-up .8s ease .3s both}
+.s-intro .brand-tagline{font-size:14px;color:#00D4A1;font-weight:600;letter-spacing:3px;text-transform:uppercase;margin-top:8px;animation:slide-up .8s ease .6s both}
+.s-intro .pill-row{display:flex;gap:10px;margin-top:22px;animation:slide-up .8s ease .9s both}
+.s-intro .pill{background:rgba(0,212,161,.1);border:1px solid rgba(0,212,161,.25);border-radius:20px;padding:5px 14px;font-size:11px;font-weight:700;color:#00D4A1}
+
+/* ══════════════════════════════════════════════
+   SCENE 2 — ROUND-UP CONCEPT
+   ══════════════════════════════════════════════ */
+.s-roundup{background:linear-gradient(135deg,#0A1628,#1A2840)}
+.roundup-wrap{display:flex;gap:32px;align-items:center}
+.roundup-demo{display:flex;flex-direction:column;gap:12px;width:320px}
+.txn-c{background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);border-radius:12px;padding:12px 16px;display:flex;align-items:center;justify-content:space-between;animation:slide-in-left .5s ease both}
+.txn-c:nth-child(2){animation-delay:.18s}.txn-c:nth-child(3){animation-delay:.36s}
+.txn-left{display:flex;align-items:center;gap:10px}
+.txn-icon2{width:36px;height:36px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:17px;flex-shrink:0}
+.txn-name2{font-size:13px;font-weight:700;color:#fff}
+.txn-amount2{font-size:11px;color:rgba(255,255,255,.45);margin-top:2px}
+.ru-badge{background:rgba(0,212,161,.15);border:1px solid rgba(0,212,161,.3);border-radius:20px;padding:4px 11px;font-size:11px;font-weight:700;color:#00D4A1;white-space:nowrap;animation:badge-pop .4s ease both;animation-delay:inherit}
+.total-saved-c{background:linear-gradient(135deg,#00D4A1,#009E78);border-radius:12px;padding:14px 16px;display:flex;align-items:center;justify-content:space-between;animation:slide-up .6s ease .6s both}
+.ts-label{font-size:12px;color:rgba(255,255,255,.8)}
+.ts-val{font-size:22px;font-weight:900;color:#fff}
+.roundup-explain{max-width:200px;animation:slide-up .6s ease .3s both}
+.ru-title{font-size:18px;font-weight:900;color:#fff;margin-bottom:10px;line-height:1.3}
+.ru-step{display:flex;align-items:flex-start;gap:8px;margin-bottom:10px;font-size:12px;color:rgba(255,255,255,.65);line-height:1.5}
+.ru-num{width:20px;height:20px;border-radius:50%;background:rgba(0,212,161,.2);border:1px solid rgba(0,212,161,.4);display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:900;color:#00D4A1;flex-shrink:0;margin-top:1px}
+
+/* ══════════════════════════════════════════════
+   SCENE 3 — LANDING PAGE
+   ══════════════════════════════════════════════ */
+.s-landing{background:#0D1B2E;padding:20px}
+.browser-win{width:580px;background:#fff;border-radius:12px;overflow:hidden;box-shadow:0 20px 60px rgba(0,0,0,.5);animation:scale-in .5s ease both}
+.browser-bar2{background:#F0F2F5;padding:9px 12px;display:flex;align-items:center;gap:8px;border-bottom:1px solid #E2E8F0}
+.bdots{display:flex;gap:4px}
+.bd{width:10px;height:10px;border-radius:50%}
+.bd-r{background:#FF5F57}.bd-y{background:#FEBC2E}.bd-g{background:#28C840}
+.burl{flex:1;background:#E8EAED;border-radius:5px;padding:4px 10px;font-size:10px;color:#555}
+.land-body{background:linear-gradient(135deg,#0A1628,#1C3D6E);padding:22px}
+.land-nav2{display:flex;align-items:center;justify-content:space-between;margin-bottom:22px}
+.land-logo2{display:flex;align-items:center;gap:7px;font-size:15px;font-weight:900;color:#fff}
+.ll-icon{width:26px;height:26px;border-radius:7px;background:#1A3560;border:1px solid rgba(0,212,161,.4);flex-shrink:0}
+.ll-nav-links{display:flex;gap:16px}
+.ll-link{font-size:10px;color:rgba(255,255,255,.55);font-weight:500}
+.land-cta2{background:#00D4A1;color:#0A1628;padding:5px 13px;border-radius:7px;font-size:10px;font-weight:700}
+.land-hero2{animation:slide-up .6s ease .2s both}
+.lh-tag{display:inline-flex;align-items:center;gap:5px;background:rgba(0,212,161,.12);border:1px solid rgba(0,212,161,.25);border-radius:20px;padding:4px 12px;font-size:9px;font-weight:700;color:#00D4A1;margin-bottom:12px}
+.lh-tag .dot{width:6px;height:6px;border-radius:50%;background:#00D4A1}
+.lh-title{font-size:22px;font-weight:900;color:#fff;line-height:1.2;margin-bottom:8px}
+.lh-title span{background:linear-gradient(135deg,#00D4A1,#3B82F6);-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.lh-sub{font-size:11px;color:rgba(255,255,255,.55);line-height:1.6;margin-bottom:14px;max-width:380px}
+.lh-btns{display:flex;gap:10px;margin-bottom:18px}
+.lh-btn-p{background:#00D4A1;color:#0A1628;padding:7px 16px;border-radius:9px;font-size:11px;font-weight:700}
+.lh-btn-s{background:rgba(255,255,255,.1);color:#fff;padding:7px 16px;border-radius:9px;font-size:11px;font-weight:600;border:1px solid rgba(255,255,255,.15)}
+.feature-chips{display:flex;gap:8px;flex-wrap:wrap;animation:slide-up .6s ease .5s both}
+.chip{background:rgba(0,212,161,.1);border:1px solid rgba(0,212,161,.22);border-radius:20px;padding:3px 10px;font-size:9px;font-weight:600;color:#00D4A1}
+
+/* ══════════════════════════════════════════════
+   SCENE 4 — SIGN UP
+   ══════════════════════════════════════════════ */
+.s-signup{background:linear-gradient(145deg,#0A1628,#1C3D6E)}
+.auth-mock{background:rgba(255,255,255,.07);backdrop-filter:blur(20px);border:1px solid rgba(255,255,255,.13);border-radius:20px;padding:26px;width:300px;animation:scale-in .5s ease both}
+.auth-logo-row{display:flex;align-items:center;gap:8px;justify-content:center;margin-bottom:20px}
+.auth-logo-icon{width:38px;height:38px;border-radius:11px;background:linear-gradient(135deg,#1A3560,#0A1628);border:1px solid rgba(0,212,161,.35);display:flex;align-items:center;justify-content:center;font-size:18px}
+.auth-logo-text{font-size:22px;font-weight:900;color:#fff;letter-spacing:-.5px}
+.auth-title{font-size:17px;font-weight:900;color:#fff;margin-bottom:3px}
+.auth-sub{font-size:11px;color:rgba(255,255,255,.45);margin-bottom:18px}
+.mock-field{background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.12);border-radius:10px;padding:9px 12px;font-size:11px;color:rgba(255,255,255,.75);margin-bottom:9px;display:flex;align-items:center;gap:8px;animation:slide-in-left .45s ease both}
+.mock-field:nth-child(1){animation-delay:.15s}
+.mock-field:nth-child(2){animation-delay:.3s}
+.mock-field:nth-child(3){animation-delay:.45s}
+.mock-field:nth-child(4){animation-delay:.6s}
+.mf-icon{font-size:13px;opacity:.55}
+.mock-submit{background:linear-gradient(135deg,#00D4A1,#00A87F);border-radius:11px;padding:11px;text-align:center;font-size:12px;font-weight:700;color:#fff;margin-top:6px;animation:slide-up .5s ease .8s both}
+.auth-aside{max-width:200px;margin-left:28px;animation:slide-up .6s ease .4s both}
+.aa-title{font-size:16px;font-weight:900;color:#fff;margin-bottom:12px}
+.aa-item{display:flex;align-items:flex-start;gap:8px;margin-bottom:10px;animation:slide-in-left .4s ease both}
+.aa-item:nth-child(2){animation-delay:.2s}
+.aa-item:nth-child(3){animation-delay:.4s}
+.aa-item:nth-child(4){animation-delay:.6s}
+.aa-check{width:18px;height:18px;border-radius:50%;background:rgba(0,212,161,.15);border:1px solid rgba(0,212,161,.35);display:flex;align-items:center;justify-content:center;font-size:8px;color:#00D4A1;flex-shrink:0;margin-top:1px}
+.aa-text{font-size:11px;color:rgba(255,255,255,.65);line-height:1.5}
+
+/* ══════════════════════════════════════════════
+   SCENE 5 — DASHBOARD
+   ══════════════════════════════════════════════ */
+.s-dashboard{background:#F0F4F8;padding:0}
+.dash-wrap{display:flex;width:100%;height:100%}
+.dash-sidebar2{width:150px;background:#0A1628;padding:14px 12px;flex-shrink:0;animation:slide-in-left .5s ease both}
+.ds-logo{display:flex;align-items:center;gap:7px;margin-bottom:20px;padding-bottom:12px;border-bottom:1px solid rgba(255,255,255,.07)}
+.ds-logo-icon{width:26px;height:26px;border-radius:7px;background:#1A3560;border:1px solid rgba(0,212,161,.3);flex-shrink:0}
+.ds-logo span{font-size:13px;font-weight:900;color:#fff}
+.ds-nav-item{display:flex;align-items:center;gap:7px;padding:7px 9px;border-radius:8px;margin-bottom:3px;font-size:10px;color:rgba(255,255,255,.45);animation:slide-in-left .4s ease both}
+.ds-nav-item.active{background:rgba(0,212,161,.14);color:#00D4A1;font-weight:700}
+.ds-nav-item:nth-child(2){animation-delay:.05s}.ds-nav-item:nth-child(3){animation-delay:.1s}
+.ds-nav-item:nth-child(4){animation-delay:.15s}.ds-nav-item:nth-child(5){animation-delay:.2s}.ds-nav-item:nth-child(6){animation-delay:.25s}
+.dash-main2{flex:1;padding:16px;overflow:hidden}
+.dm-hero{background:linear-gradient(135deg,#0A1628,#1C3D6E);border-radius:14px;padding:16px;color:#fff;margin-bottom:12px;animation:scale-in .5s ease .2s both}
+.dmh-label{font-size:9px;color:rgba(255,255,255,.5);margin-bottom:3px}
+.dmh-balance{font-size:26px;font-weight:900}
+.dmh-sub{font-size:10px;color:#00D4A1;margin-top:3px}
+.dm-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:9px;margin-bottom:12px}
+.dm-stat{background:#fff;border-radius:10px;padding:10px;animation:scale-in .4s ease both;box-shadow:0 2px 8px rgba(0,0,0,.06)}
+.dm-stat:nth-child(1){animation-delay:.3s}.dm-stat:nth-child(2){animation-delay:.4s}.dm-stat:nth-child(3){animation-delay:.5s}
+.dms-icon{font-size:15px;margin-bottom:5px}
+.dms-label{font-size:8px;color:#94A3B8;font-weight:500}
+.dms-val{font-size:13px;font-weight:900;color:#0A1628}
+.dm-txns{background:#fff;border-radius:10px;padding:10px;animation:scale-in .4s ease .6s both;box-shadow:0 2px 8px rgba(0,0,0,.06)}
+.dmt-label{font-size:9px;font-weight:700;color:#0A1628;margin-bottom:7px;text-transform:uppercase;letter-spacing:.5px}
+.dmt-row{display:flex;align-items:center;justify-content:space-between;padding:5px 0;border-bottom:1px solid #F5F7FA;font-size:10px}
+.dmt-row:last-child{border-bottom:none}
+.dmt-name{color:#0A1628;font-weight:600}
+.dmt-amt{font-weight:700}
+.dmt-amt.pos{color:#10B981}.dmt-amt.neg{color:#EF4444}
+/* bottom tab nav */
+.phone-bottom-nav{display:flex;background:#0A1628;border-top:1px solid rgba(255,255,255,.07)}
+.pbn-item{flex:1;display:flex;flex-direction:column;align-items:center;padding:6px 0;font-size:8px;color:rgba(255,255,255,.4);gap:3px}
+.pbn-item.active{color:#00D4A1}
+.pbn-icon{font-size:14px}
+
+/* ══════════════════════════════════════════════
+   SCENE 6 — SAVINGS TRACKER
+   ══════════════════════════════════════════════ */
+.s-savings{background:#F0F4F8}
+.savings-mock{width:520px;animation:scale-in .5s ease both}
+.sav-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px}
+.sav-header h3{font-size:17px;font-weight:900;color:#0A1628}
+.sav-add-btn{background:#0A1628;color:#fff;padding:7px 14px;border-radius:9px;font-size:10px;font-weight:700}
+.sav-total{background:linear-gradient(135deg,#0A1628,#1C3D6E);border-radius:13px;padding:14px 18px;color:#fff;display:flex;justify-content:space-between;align-items:center;margin-bottom:13px;animation:scale-in .5s ease .1s both}
+.st-left .st-label{font-size:10px;color:rgba(255,255,255,.5);margin-bottom:3px}
+.st-left .st-val{font-size:22px;font-weight:900}
+.st-right{text-align:right}
+.st-right .st-rlabel{font-size:9px;color:rgba(255,255,255,.4);margin-bottom:2px}
+.st-right .st-rval{font-size:14px;font-weight:800;color:#00D4A1}
+.sav-txn{background:#fff;border-radius:11px;padding:9px 13px;display:flex;align-items:center;gap:11px;margin-bottom:7px;box-shadow:0 2px 8px rgba(0,0,0,.05);animation:slide-in-left .4s ease both}
+.sav-txn:nth-child(1){animation-delay:.2s}.sav-txn:nth-child(2){animation-delay:.35s}
+.sav-txn:nth-child(3){animation-delay:.5s}.sav-txn:nth-child(4){animation-delay:.65s}
+.st-icon2{width:34px;height:34px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0}
+.st-info{flex:1}
+.st-name{font-size:12px;font-weight:700;color:#0A1628}
+.st-sub{font-size:10px;color:#94A3B8;margin-top:1px}
+.st-amt{font-size:13px;font-weight:800;color:#00D4A1}
+
+/* ══════════════════════════════════════════════
+   SCENE 7 — GOALS
+   ══════════════════════════════════════════════ */
+.s-goals{background:#F0F4F8}
+.goals-mock{width:520px;animation:scale-in .5s ease both}
+.goals-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px}
+.goals-header h3{font-size:17px;font-weight:900;color:#0A1628}
+.add-goal-btn{background:linear-gradient(135deg,#00D4A1,#00A87F);color:#fff;padding:7px 14px;border-radius:9px;font-size:10px;font-weight:700}
+.goals-grid2{display:grid;grid-template-columns:1fr 1fr;gap:11px}
+.goal-c{background:#fff;border-radius:13px;padding:14px;box-shadow:0 2px 10px rgba(0,0,0,.06);animation:scale-in .4s ease both}
+.goal-c:nth-child(1){animation-delay:.1s}.goal-c:nth-child(2){animation-delay:.25s}
+.goal-c:nth-child(3){animation-delay:.4s}.goal-c:nth-child(4){animation-delay:.55s}
+.gc-icon{font-size:22px;margin-bottom:7px}
+.gc-name{font-size:12px;font-weight:800;color:#0A1628;margin-bottom:2px}
+.gc-amounts{display:flex;justify-content:space-between;font-size:10px;margin-bottom:7px}
+.gc-current{font-weight:700;color:#0A1628}
+.gc-target{color:#94A3B8}
+.gc-bar{height:6px;background:#F1F5F9;border-radius:3px;overflow:hidden;margin-bottom:5px}
+.gc-fill{height:100%;border-radius:3px;animation:fill-bar 1.2s ease both}
+.gc-pct{font-size:10px;font-weight:700}
+.gc-add-btn{background:#F0F4F8;border-radius:6px;padding:5px 10px;font-size:9px;font-weight:700;color:#0A1628;margin-top:6px;text-align:center}
+
+/* ══════════════════════════════════════════════
+   SCENE 8 — PORTFOLIO
+   ══════════════════════════════════════════════ */
+.s-portfolio{background:#F0F4F8}
+.portfolio-mock{width:580px;animation:scale-in .5s ease both}
+.port-hero{background:linear-gradient(135deg,#0A1628,#1C3D6E);border-radius:13px;padding:14px 18px;color:#fff;margin-bottom:12px;display:flex;justify-content:space-between;align-items:center}
+.ph-left .ph-label{font-size:10px;color:rgba(255,255,255,.5);margin-bottom:3px}
+.ph-left .ph-val{font-size:26px;font-weight:900}
+.ph-left .ph-gain{font-size:11px;color:#00D4A1;margin-top:3px}
+.ph-right{text-align:right}
+.ph-right .ph-rlabel{font-size:9px;color:rgba(255,255,255,.4);margin-bottom:2px}
+.ph-right .ph-rval{font-size:12px;font-weight:700;color:rgba(255,255,255,.75)}
+.port-grid{display:grid;grid-template-columns:1fr 1.7fr;gap:11px}
+.alloc-c{background:#fff;border-radius:12px;padding:13px;box-shadow:0 2px 10px rgba(0,0,0,.05);animation:scale-in .4s ease .2s both}
+.alloc-t{font-size:10px;font-weight:700;color:#0A1628;text-transform:uppercase;letter-spacing:.5px;margin-bottom:10px}
+.donut-p{width:88px;height:88px;border-radius:50%;background:conic-gradient(#3B82F6 0% 38%,#A855F7 38% 62%,#F59E0B 62% 77%,#00D4A1 77% 100%);margin:0 auto 10px;position:relative;animation:spin-in .8s ease .3s both}
+.donut-p::after{content:'';position:absolute;inset:22px;background:#fff;border-radius:50%}
+.alloc-leg{display:flex;flex-direction:column;gap:5px}
+.al-row{display:flex;align-items:center;gap:6px;font-size:10px;color:#64748B}
+.al-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+.al-pct{margin-left:auto;font-weight:700}
+.holdings-c{background:#fff;border-radius:12px;padding:13px;box-shadow:0 2px 10px rgba(0,0,0,.05);animation:scale-in .4s ease .3s both}
+.hc-title{font-size:10px;font-weight:700;color:#0A1628;text-transform:uppercase;letter-spacing:.5px;margin-bottom:9px}
+.hold-row2{display:flex;align-items:center;gap:8px;padding:5px 0;border-bottom:1px solid #F5F7FA;animation:slide-in-left .4s ease both}
+.hold-row2:nth-child(1){animation-delay:.4s}.hold-row2:nth-child(2){animation-delay:.5s}
+.hold-row2:nth-child(3){animation-delay:.6s}.hold-row2:nth-child(4){animation-delay:.7s}
+.hold-row2:last-child{border-bottom:none}
+.h-tick{width:30px;height:30px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:8px;font-weight:900;flex-shrink:0}
+.h-info2{flex:1}
+.h-name2{font-size:10px;font-weight:700;color:#0A1628}
+.h-type2{font-size:8px;color:#94A3B8}
+.h-right{text-align:right}
+.h-val2{font-size:11px;font-weight:800;color:#0A1628}
+.h-gain2{font-size:9px;font-weight:600}
+.h-gain2.pos{color:#10B981}.h-gain2.neg{color:#EF4444}
+
+/* ══════════════════════════════════════════════
+   SCENE 9 — WALLET
+   ══════════════════════════════════════════════ */
+.s-wallet{background:#F0F4F8}
+.wallet-mock{width:460px;animation:scale-in .5s ease both}
+.wallet-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px}
+.wallet-head h3{font-size:17px;font-weight:900;color:#0A1628}
+.wallet-btns{display:flex;gap:8px}
+.wbtn{padding:6px 12px;border-radius:8px;font-size:10px;font-weight:700}
+.wbtn-p{background:#0A1628;color:#fff}
+.wbtn-s{background:#F0F4F8;color:#0A1628;border:1px solid #E2E8F0}
+.credit-card{background:linear-gradient(135deg,#0A1628,#1C3D6E);border-radius:15px;padding:18px;color:#fff;margin-bottom:12px;position:relative;overflow:hidden;animation:scale-in .6s ease .1s both;box-shadow:0 8px 28px rgba(0,0,0,.2)}
+.credit-card::before{content:'';position:absolute;width:180px;height:180px;border-radius:50%;background:rgba(0,212,161,.07);top:-50px;right:-40px}
+.cc-type{font-size:9px;color:rgba(255,255,255,.45);letter-spacing:2px;text-transform:uppercase;margin-bottom:10px}
+.cc-num{font-size:14px;letter-spacing:3px;font-weight:600;margin-bottom:12px}
+.cc-bot{display:flex;justify-content:space-between;align-items:flex-end}
+.cc-holder{font-size:11px;font-weight:700}
+.cc-exp{font-size:9px;color:rgba(255,255,255,.55);margin-top:2px}
+.cc-network{font-size:20px}
+.bank-section{background:#fff;border-radius:13px;padding:13px;box-shadow:0 2px 10px rgba(0,0,0,.05);animation:scale-in .5s ease .3s both}
+.bs-title{font-size:10px;font-weight:700;color:#0A1628;text-transform:uppercase;letter-spacing:.5px;margin-bottom:10px}
+.ba-row2{display:flex;align-items:center;gap:10px;padding:7px 0;border-bottom:1px solid #F5F7FA;animation:slide-in-left .4s ease both}
+.ba-row2:nth-child(1){animation-delay:.4s}.ba-row2:nth-child(2){animation-delay:.55s}
+.ba-row2:last-child{border-bottom:none}
+.ba-icon2{width:30px;height:30px;border-radius:8px;background:#F0F4F8;display:flex;align-items:center;justify-content:center;font-size:15px;flex-shrink:0}
+.ba-info2{flex:1}
+.ba-name2{font-size:11px;font-weight:700;color:#0A1628}
+.ba-acct2{font-size:9px;color:#94A3B8}
+.ba-bal{font-size:12px;font-weight:800;color:#00D4A1}
+
+/* ══════════════════════════════════════════════
+   SCENE 10 — PAYMENTS
+   ══════════════════════════════════════════════ */
+.s-payments{background:linear-gradient(145deg,#0A1628,#1C3D6E)}
+.pay-wrap{display:flex;gap:20px;align-items:flex-start}
+.send-form2{background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.12);border-radius:17px;padding:20px;width:240px}
+.sf-title{font-size:15px;font-weight:900;color:#fff;margin-bottom:14px}
+.sf-recipient{display:flex;align-items:center;gap:9px;background:rgba(255,255,255,.06);border-radius:10px;padding:9px 11px;margin-bottom:12px;animation:slide-in-left .4s ease .2s both}
+.sf-avatar{width:30px;height:30px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:900;color:#fff;flex-shrink:0}
+.sf-rname{font-size:11px;font-weight:700;color:#fff}
+.sf-rsub{font-size:9px;color:rgba(255,255,255,.45)}
+.sf-amount-area{text-align:center;padding:14px 0;animation:slide-up .5s ease .4s both}
+.sf-big{font-size:34px;font-weight:900;color:#fff}
+.sf-note{font-size:10px;color:rgba(255,255,255,.4);margin-top:3px}
+.sf-btn{background:linear-gradient(135deg,#00D4A1,#00A87F);border-radius:11px;padding:11px;text-align:center;font-size:12px;font-weight:700;color:#fff;animation:slide-up .5s ease .6s both}
+.recents-panel{background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);border-radius:13px;padding:14px;width:190px}
+.rp-title{font-size:10px;font-weight:700;color:rgba(255,255,255,.5);text-transform:uppercase;letter-spacing:.5px;margin-bottom:10px}
+.rp-row{display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid rgba(255,255,255,.06);animation:slide-in-left .4s ease both}
+.rp-row:nth-child(1){animation-delay:.3s}.rp-row:nth-child(2){animation-delay:.45s}.rp-row:nth-child(3){animation-delay:.6s}
+.rp-row:last-child{border-bottom:none}
+.rp-av{width:26px;height:26px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:900;color:#fff;flex-shrink:0}
+.rp-info{flex:1}
+.rp-name{font-size:10px;font-weight:700;color:rgba(255,255,255,.8)}
+.rp-date{font-size:8px;color:rgba(255,255,255,.35)}
+.rp-amt{font-size:11px;font-weight:700;color:#EF4444}
+
+/* ══════════════════════════════════════════════
+   SCENE 11 — MOBILE APP
+   ══════════════════════════════════════════════ */
+.s-mobile{background:linear-gradient(135deg,#060E1A,#0A1628)}
+.mobile-wrap{display:flex;align-items:center;gap:36px}
+.phone-frame{width:200px;height:390px;background:#1A2840;border-radius:34px;border:3px solid rgba(255,255,255,.14);overflow:hidden;position:relative;box-shadow:0 24px 60px rgba(0,0,0,.5),inset 0 1px 0 rgba(255,255,255,.08);animation:phone-drop .7s cubic-bezier(.34,1.56,.64,1) both;display:flex;flex-direction:column}
+.phone-notch2{width:70px;height:20px;background:#0A1628;border-radius:0 0 14px 14px;margin:0 auto;flex-shrink:0;position:relative;z-index:10}
+.phone-screen2{flex:1;background:linear-gradient(135deg,#0A1628,#1C3D6E);display:flex;flex-direction:column;align-items:center;justify-content:center;padding:12px;position:relative}
+.ps-logo-icon{width:56px;height:56px;border-radius:16px;background:linear-gradient(135deg,#1A3560,#0A1628);border:1px solid rgba(0,212,161,.4);display:flex;align-items:center;justify-content:center;font-size:24px;margin-bottom:12px;box-shadow:0 0 36px rgba(0,212,161,.18);animation:logo-pulse 2s ease-in-out infinite}
+.ps-app-name{font-size:20px;font-weight:900;color:#fff;letter-spacing:4px;margin-bottom:5px;animation:slide-up .5s ease .3s both}
+.ps-tagline{font-size:9px;color:#00D4A1;letter-spacing:1px;font-weight:600;margin-bottom:20px;animation:slide-up .5s ease .5s both;text-align:center}
+.ps-tabs{display:flex;gap:5px;animation:slide-up .5s ease .7s both}
+.ps-tab{background:rgba(255,255,255,.08);border-radius:18px;padding:4px 9px;font-size:8px;color:rgba(255,255,255,.55);font-weight:600}
+.ps-tab.active{background:rgba(0,212,161,.18);color:#00D4A1}
+.phone-tab-bar{background:#0A1628;border-top:1px solid rgba(255,255,255,.07);padding:6px 0;display:flex;flex-shrink:0}
+.ptb-item{flex:1;display:flex;flex-direction:column;align-items:center;gap:2px}
+.ptb-icon{font-size:13px}
+.ptb-label{font-size:7px;color:rgba(255,255,255,.35)}
+.ptb-item.active .ptb-icon,.ptb-item.active .ptb-label{color:#00D4A1}
+.phone-info2{max-width:230px}
+.pi-title{font-size:21px;font-weight:900;color:#fff;margin-bottom:8px;animation:slide-up .6s ease .3s both}
+.pi-sub{font-size:12px;color:rgba(255,255,255,.5);line-height:1.6;margin-bottom:16px;animation:slide-up .6s ease .5s both}
+.pi-features{display:flex;flex-direction:column;gap:7px}
+.pi-f{display:flex;align-items:center;gap:8px;animation:slide-in-left .4s ease both}
+.pi-f:nth-child(1){animation-delay:.6s}.pi-f:nth-child(2){animation-delay:.75s}
+.pi-f:nth-child(3){animation-delay:.9s}.pi-f:nth-child(4){animation-delay:1.05s}.pi-f:nth-child(5){animation-delay:1.2s}
+.pi-check{width:17px;height:17px;border-radius:50%;background:rgba(0,212,161,.15);border:1px solid rgba(0,212,161,.35);display:flex;align-items:center;justify-content:center;font-size:8px;color:#00D4A1;flex-shrink:0}
+.pi-text{font-size:11px;color:rgba(255,255,255,.7)}
+
+/* ══════════════════════════════════════════════
+   SCENE 12 — REAL-TIME SYNC
+   ══════════════════════════════════════════════ */
+.s-sync{background:#0A1628}
+.sync-wrap{display:flex;align-items:center;gap:24px}
+.sync-phone2{width:130px;background:#1A2840;border-radius:22px;border:2px solid rgba(255,255,255,.14);overflow:hidden;animation:slide-in-left .5s ease both;box-shadow:0 12px 40px rgba(0,0,0,.4)}
+.sph-notch{width:55px;height:16px;background:#0A1628;border-radius:0 0 12px 12px;margin:0 auto}
+.sph-screen{background:linear-gradient(135deg,#0A1628,#1C3D6E);padding:10px;color:#fff;min-height:170px}
+.sph-label{font-size:8px;color:rgba(255,255,255,.4);margin-bottom:3px}
+.sph-amount{font-size:18px;font-weight:900;margin-bottom:8px;animation:count-bounce 1.5s ease 1.2s infinite}
+.sph-save-btn{background:linear-gradient(135deg,#00D4A1,#00A87F);border-radius:7px;padding:7px;text-align:center;font-size:9px;font-weight:700;color:#fff;margin-bottom:8px}
+.sph-badge{background:rgba(0,212,161,.15);border-radius:7px;padding:5px 7px;font-size:8px;color:#00D4A1;animation:flash-green .4s ease 1.4s both}
+.sync-middle{display:flex;flex-direction:column;align-items:center;gap:8px;animation:scale-in .5s ease .4s both}
+.sync-bolt2{width:38px;height:38px;border-radius:50%;background:rgba(0,212,161,.12);border:2px solid rgba(0,212,161,.35);display:flex;align-items:center;justify-content:center;font-size:16px;animation:sync-pulse 1.5s ease-in-out infinite}
+.sync-arrows{display:flex;flex-direction:column;gap:5px}
+.sarr{font-size:16px;color:#00D4A1}
+.sarr.r{animation:arrow-r 1.5s ease-in-out infinite}
+.sarr.l{animation:arrow-l 1.5s ease-in-out infinite;animation-delay:.75s}
+.sync-label2{font-size:8px;color:#00D4A1;font-weight:700;letter-spacing:1px;text-transform:uppercase;text-align:center;margin-top:4px}
+.sync-laptop2{width:240px;animation:scale-in .5s ease .2s both}
+.sl-screen{background:#F0F4F8;border-radius:9px 9px 0 0;padding:9px;border:2px solid rgba(255,255,255,.14);border-bottom:none}
+.sl-bar2{display:flex;gap:4px;margin-bottom:7px}
+.slb2{width:7px;height:7px;border-radius:50%}
+.sl-content{background:linear-gradient(135deg,#0A1628,#1C3D6E);border-radius:6px;padding:9px;color:#fff}
+.slc-label{font-size:7px;color:rgba(255,255,255,.4);margin-bottom:2px}
+.slc-amount{font-size:17px;font-weight:900;margin-bottom:5px;animation:count-bounce 1.5s ease 1.3s infinite}
+.slc-badge{background:rgba(0,212,161,.2);border-radius:5px;padding:3px 7px;font-size:8px;color:#00D4A1;font-weight:700;display:inline-flex;align-items:center;gap:3px;animation:flash-green .4s ease 1.5s both}
+.sl-base{height:12px;background:rgba(255,255,255,.12);border-radius:0 0 3px 3px}
+.sl-stand{width:50px;height:7px;background:rgba(255,255,255,.08);border-radius:4px;margin:2px auto 0}
+.sync-info{max-width:130px;animation:slide-up .6s ease .5s both}
+.si-title{font-size:15px;font-weight:900;color:#fff;margin-bottom:8px}
+.si-item{display:flex;align-items:flex-start;gap:6px;margin-bottom:8px;font-size:10px;color:rgba(255,255,255,.6);line-height:1.5}
+.si-dot{width:5px;height:5px;border-radius:50%;background:#00D4A1;margin-top:4px;flex-shrink:0}
+
+/* ══════════════════════════════════════════════
+   SCENE 13 — OUTRO
+   ══════════════════════════════════════════════ */
+.s-outro{background:radial-gradient(ellipse at 40% 50%,#1A3560 0%,#0A1628 70%)}
+.outro-wrap{text-align:center;animation:scale-in .6s ease both}
+.outro-logo{width:86px;height:86px;border-radius:24px;background:linear-gradient(135deg,#1A3560,#0A1628);border:2px solid rgba(0,212,161,.4);display:flex;align-items:center;justify-content:center;margin:0 auto 18px;box-shadow:0 0 80px rgba(0,212,161,.3);animation:logo-pulse 2s ease-in-out infinite;font-size:38px}
+.outro-brand{font-size:50px;font-weight:900;color:#fff;letter-spacing:-2px;margin-bottom:8px;animation:slide-up .6s ease .2s both}
+.outro-tagline{font-size:15px;color:#00D4A1;font-weight:600;letter-spacing:3px;text-transform:uppercase;margin-bottom:18px;animation:slide-up .6s ease .4s both}
+.outro-url{background:rgba(0,212,161,.1);border:1px solid rgba(0,212,161,.3);border-radius:22px;padding:9px 22px;font-size:15px;color:rgba(255,255,255,.8);font-weight:600;display:inline-block;animation:slide-up .6s ease .6s both}
+.outro-stats{display:flex;gap:28px;justify-content:center;margin-top:22px;animation:slide-up .6s ease .8s both}
+.os{text-align:center}
+.os-val{font-size:20px;font-weight:900;color:#fff}
+.os-label{font-size:10px;color:rgba(255,255,255,.35);margin-top:2px}
+.outro-divider{width:1px;background:rgba(255,255,255,.1)}
+</style>
+</head>
+<body>
+
+<div class="page-header">
+  <h1>HAY-M — Complete App & Website Walkthrough</h1>
+  <p>Animated feature demo · 1 min 48 sec · Click scenes below to jump to any section</p>
+</div>
+
+<div id="player-wrapper">
+  <div id="stage">
+
+    <!-- ── S1: INTRO ── -->
+    <div class="scene s-intro" id="scene-0">
+      <div class="dots-bg" id="dots-bg"></div>
+      <div style="display:flex;flex-direction:column;align-items:center;position:relative;z-index:2">
+        <div class="logo-icon">
+          <svg width="54" height="54" viewBox="0 0 56 56" xmlns="http://www.w3.org/2000/svg">
+            <defs><linearGradient id="itl" x1="0" y1="0" x2="1" y2="0"><stop offset="0%" stop-color="#009E78"/><stop offset="50%" stop-color="#00D4A1"/><stop offset="100%" stop-color="#009E78"/></linearGradient></defs>
+            <path d="M28,28 C28,18 20,12 13,12 C6,12 4,18 4,23 C4,28 6,34 13,34 C20,34 28,24 28,28 C28,32 36,22 43,22 C50,22 52,28 52,33 C52,38 50,44 43,44 C36,44 28,38 28,28Z" fill="none" stroke="url(#itl)" stroke-width="4.5" stroke-linecap="round"/>
+            <circle cx="13" cy="23" r="2.5" fill="#00D4A1"/><circle cx="43" cy="33" r="2.5" fill="#00D4A1"/>
+          </svg>
+        </div>
+        <div class="brand-name">HAY-M</div>
+        <div class="brand-tagline">Save Smart · Invest Smartly</div>
+        <div class="pill-row">
+          <div class="pill">💰 Micro-Savings</div>
+          <div class="pill">📈 Investments</div>
+          <div class="pill">🎯 Goals</div>
+          <div class="pill">⚡ Real-Time</div>
+        </div>
+      </div>
+      <div class="scene-label">01 · Introduction</div>
+    </div>
+
+    <!-- ── S2: ROUND-UP ── -->
+    <div class="scene s-roundup" id="scene-1">
+      <div class="roundup-wrap">
+        <div class="roundup-demo">
+          <div class="txn-c">
+            <div class="txn-left">
+              <div class="txn-icon2" style="background:rgba(139,69,19,.15)">☕</div>
+              <div><div class="txn-name2">Costa Coffee</div><div class="txn-amount2">£2.70 spent</div></div>
+            </div>
+            <div class="ru-badge">+£0.30 saved</div>
+          </div>
+          <div class="txn-c">
+            <div class="txn-left">
+              <div class="txn-icon2" style="background:rgba(234,179,8,.15)">⛽</div>
+              <div><div class="txn-name2">Shell Petrol</div><div class="txn-amount2">£48.60 spent</div></div>
+            </div>
+            <div class="ru-badge">+£1.40 saved</div>
+          </div>
+          <div class="txn-c">
+            <div class="txn-left">
+              <div class="txn-icon2" style="background:rgba(34,197,94,.15)">🛒</div>
+              <div><div class="txn-name2">Tesco</div><div class="txn-amount2">£23.45 spent</div></div>
+            </div>
+            <div class="ru-badge">+£0.55 saved</div>
+          </div>
+          <div class="total-saved-c">
+            <div><div class="ts-label">This week's round-ups</div><div style="font-size:10px;color:rgba(255,255,255,.6);margin-top:2px">From 14 transactions</div></div>
+            <div class="ts-val">£8.40</div>
+          </div>
+        </div>
+        <div class="roundup-explain">
+          <div class="ru-title">How Round-Ups Work</div>
+          <div class="ru-step"><div class="ru-num">1</div><span>You make a purchase at any merchant</span></div>
+          <div class="ru-step"><div class="ru-num">2</div><span>HAY-M rounds up to the nearest £</span></div>
+          <div class="ru-step"><div class="ru-num">3</div><span>The difference is saved automatically</span></div>
+          <div class="ru-step"><div class="ru-num">4</div><span>Savings grow without you thinking about it</span></div>
+        </div>
+      </div>
+      <div class="scene-label">02 · How Round-Ups Work</div>
+    </div>
+
+    <!-- ── S3: LANDING PAGE ── -->
+    <div class="scene s-landing" id="scene-2">
+      <div class="browser-win">
+        <div class="browser-bar2">
+          <div class="bdots"><div class="bd bd-r"></div><div class="bd bd-y"></div><div class="bd bd-g"></div></div>
+          <div class="burl">🔒 hay-m.com</div>
+        </div>
+        <div class="land-body">
+          <div class="land-nav2">
+            <div class="land-logo2">
+              <div class="ll-icon"></div>HAY-M
+            </div>
+            <div class="ll-nav-links">
+              <span class="ll-link">Features</span>
+              <span class="ll-link">How it works</span>
+              <span class="ll-link">About</span>
+            </div>
+            <div style="display:flex;gap:8px">
+              <span style="font-size:10px;color:rgba(255,255,255,.6);padding:5px 10px;border-radius:7px;border:1px solid rgba(255,255,255,.15);font-weight:600">Log In</span>
+              <div class="land-cta2">Start Free →</div>
+            </div>
+          </div>
+          <div class="land-hero2">
+            <div class="lh-tag"><span class="dot"></span>Micro-savings &amp; investment platform</div>
+            <h2 class="lh-title">Save Smart,<br/><span>Invest Smartly.</span></h2>
+            <p class="lh-sub">HAY-M turns your everyday spending into an automatic savings habit. Round-ups, smart goals, and real investments — all in one place.</p>
+            <div class="lh-btns">
+              <div class="lh-btn-p">Start Saving Free →</div>
+              <div class="lh-btn-s">Log In</div>
+            </div>
+            <div class="feature-chips">
+              <div class="chip">💰 Auto Round-Ups</div>
+              <div class="chip">🎯 Savings Goals</div>
+              <div class="chip">📊 Portfolio Tracking</div>
+              <div class="chip">💳 Wallet & Payments</div>
+              <div class="chip">⚡ Real-Time Sync</div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="scene-label">03 · Website Landing Page</div>
+    </div>
+
+    <!-- ── S4: SIGN UP ── -->
+    <div class="scene s-signup" id="scene-3">
+      <div class="auth-mock">
+        <div class="auth-logo-row">
+          <div class="auth-logo-icon">∞</div>
+          <div class="auth-logo-text">HAY-M</div>
+        </div>
+        <div class="auth-title">Create your account</div>
+        <div class="auth-sub">Start your savings journey today</div>
+        <div class="mock-field"><span class="mf-icon">👤</span>John Smith</div>
+        <div class="mock-field"><span class="mf-icon">📧</span>john@example.com</div>
+        <div class="mock-field"><span class="mf-icon">📱</span>+44 7700 900000</div>
+        <div class="mock-field"><span class="mf-icon">🔒</span>••••••••</div>
+        <div class="mock-submit">Create Account →</div>
+      </div>
+      <div class="auth-aside">
+        <div class="aa-title">Why HAY-M?</div>
+        <div class="aa-item"><div class="aa-check">✓</div><div class="aa-text">Free account — no hidden fees</div></div>
+        <div class="aa-item"><div class="aa-check">✓</div><div class="aa-text">Bank-level JWT security</div></div>
+        <div class="aa-item"><div class="aa-check">✓</div><div class="aa-text">Works on web &amp; mobile</div></div>
+        <div class="aa-item"><div class="aa-check">✓</div><div class="aa-text">Real-time balance sync</div></div>
+      </div>
+      <div class="scene-label">04 · Sign Up</div>
+    </div>
+
+    <!-- ── S5: DASHBOARD ── -->
+    <div class="scene s-dashboard" id="scene-4">
+      <div class="dash-wrap">
+        <div class="dash-sidebar2">
+          <div class="ds-logo"><div class="ds-logo-icon"></div><span>HAY-M</span></div>
+          <div class="ds-nav-item active"><span>🏠</span>Dashboard</div>
+          <div class="ds-nav-item"><span>💰</span>Savings</div>
+          <div class="ds-nav-item"><span>🎯</span>Goals</div>
+          <div class="ds-nav-item"><span>📊</span>Portfolio</div>
+          <div class="ds-nav-item"><span>💳</span>Wallet</div>
+          <div class="ds-nav-item"><span>💸</span>Payments</div>
+        </div>
+        <div class="dash-main2">
+          <div class="dm-hero">
+            <div class="dmh-label">Total Balance</div>
+            <div class="dmh-balance">£3,842.50</div>
+            <div class="dmh-sub">▲ +£124.30 this month</div>
+          </div>
+          <div class="dm-stats">
+            <div class="dm-stat"><div class="dms-icon">💰</div><div class="dms-label">Total Saved</div><div class="dms-val">£428.60</div></div>
+            <div class="dm-stat"><div class="dms-icon">🎯</div><div class="dms-label">Goals Active</div><div class="dms-val">4</div></div>
+            <div class="dm-stat"><div class="dms-icon">📈</div><div class="dms-label">Portfolio</div><div class="dms-val">£2,840</div></div>
+          </div>
+          <div class="dm-txns">
+            <div class="dmt-label">Recent Activity</div>
+            <div class="dmt-row"><span class="dmt-name">☕ Costa Coffee round-up</span><span class="dmt-amt pos">+£0.30</span></div>
+            <div class="dmt-row"><span class="dmt-name">💰 Manual saving</span><span class="dmt-amt pos">+£25.00</span></div>
+            <div class="dmt-row"><span class="dmt-name">🎯 Holiday goal funded</span><span class="dmt-amt pos">+£50.00</span></div>
+            <div class="dmt-row"><span class="dmt-name">💸 Transfer to Sarah</span><span class="dmt-amt neg">-£20.00</span></div>
+          </div>
+        </div>
+      </div>
+      <div class="scene-label">05 · Dashboard</div>
+    </div>
+
+    <!-- ── S6: SAVINGS TRACKER ── -->
+    <div class="scene s-savings" id="scene-5">
+      <div class="savings-mock">
+        <div class="sav-header">
+          <h3>💰 Micro-Savings Tracker</h3>
+          <div class="sav-add-btn">+ Add Manual</div>
+        </div>
+        <div class="sav-total">
+          <div class="st-left"><div class="st-label">Total Micro-Saved</div><div class="st-val">£428.60</div></div>
+          <div class="st-right"><div class="st-rlabel">This month</div><div class="st-rval">+£68.40</div></div>
+        </div>
+        <div class="sav-txn"><div class="st-icon2" style="background:rgba(139,69,19,.12)">☕</div><div class="st-info"><div class="st-name">Costa Coffee</div><div class="st-sub">Round-up · Today 08:42</div></div><div class="st-amt">+£0.30</div></div>
+        <div class="sav-txn"><div class="st-icon2" style="background:rgba(234,179,8,.12)">⛽</div><div class="st-info"><div class="st-name">BP Petrol Station</div><div class="st-sub">Round-up · Today 07:15</div></div><div class="st-amt">+£1.40</div></div>
+        <div class="sav-txn"><div class="st-icon2" style="background:rgba(34,197,94,.12)">🛒</div><div class="st-info"><div class="st-name">Sainsbury's</div><div class="st-sub">Round-up · Yesterday</div></div><div class="st-amt">+£0.72</div></div>
+        <div class="sav-txn"><div class="st-icon2" style="background:rgba(59,130,246,.12)">✏️</div><div class="st-info"><div class="st-name">Manual Saving</div><div class="st-sub">Added manually · Yesterday</div></div><div class="st-amt">+£25.00</div></div>
+      </div>
+      <div class="scene-label">06 · Micro-Savings Tracker</div>
+    </div>
+
+    <!-- ── S7: GOALS ── -->
+    <div class="scene s-goals" id="scene-6">
+      <div class="goals-mock">
+        <div class="goals-header">
+          <h3>🎯 Savings Goals</h3>
+          <div class="add-goal-btn">+ New Goal</div>
+        </div>
+        <div class="goals-grid2">
+          <div class="goal-c">
+            <div class="gc-icon">✈️</div>
+            <div class="gc-name">Holiday — Maldives</div>
+            <div class="gc-amounts"><span class="gc-current">£1,240</span><span class="gc-target">of £3,000</span></div>
+            <div class="gc-bar"><div class="gc-fill" style="width:41%;background:linear-gradient(90deg,#00D4A1,#009E78)"></div></div>
+            <div class="gc-pct" style="color:#00D4A1">41% complete</div>
+            <div class="gc-add-btn">+ Add Funds</div>
+          </div>
+          <div class="goal-c">
+            <div class="gc-icon">🚗</div>
+            <div class="gc-name">New Car</div>
+            <div class="gc-amounts"><span class="gc-current">£5,800</span><span class="gc-target">of £8,000</span></div>
+            <div class="gc-bar"><div class="gc-fill" style="width:73%;background:linear-gradient(90deg,#3B82F6,#1D4ED8)"></div></div>
+            <div class="gc-pct" style="color:#3B82F6">73% complete</div>
+            <div class="gc-add-btn">+ Add Funds</div>
+          </div>
+          <div class="goal-c">
+            <div class="gc-icon">🏠</div>
+            <div class="gc-name">House Deposit</div>
+            <div class="gc-amounts"><span class="gc-current">£8,200</span><span class="gc-target">of £25,000</span></div>
+            <div class="gc-bar"><div class="gc-fill" style="width:33%;background:linear-gradient(90deg,#A855F7,#7C3AED)"></div></div>
+            <div class="gc-pct" style="color:#A855F7">33% complete</div>
+            <div class="gc-add-btn">+ Add Funds</div>
+          </div>
+          <div class="goal-c">
+            <div class="gc-icon">🛡️</div>
+            <div class="gc-name">Emergency Fund</div>
+            <div class="gc-amounts"><span class="gc-current">£2,400</span><span class="gc-target">of £2,000</span></div>
+            <div class="gc-bar"><div class="gc-fill" style="width:100%;background:linear-gradient(90deg,#10B981,#059669)"></div></div>
+            <div class="gc-pct" style="color:#10B981">✅ Goal reached!</div>
+            <div class="gc-add-btn">+ Add More</div>
+          </div>
+        </div>
+      </div>
+      <div class="scene-label">07 · Savings Goals</div>
+    </div>
+
+    <!-- ── S8: PORTFOLIO ── -->
+    <div class="scene s-portfolio" id="scene-7">
+      <div class="portfolio-mock">
+        <div class="port-hero">
+          <div class="ph-left">
+            <div class="ph-label">Total Portfolio Value</div>
+            <div class="ph-val">£28,642.50</div>
+            <div class="ph-gain">▲ +£5,238.40 (22.4%) all time</div>
+          </div>
+          <div class="ph-right">
+            <div class="ph-rlabel">Total Invested</div>
+            <div class="ph-rval">£23,404.10</div>
+            <div style="margin-top:6px"><div class="ph-rlabel">Holdings</div><div class="ph-rval">10</div></div>
+          </div>
+        </div>
+        <div class="port-grid">
+          <div class="alloc-c">
+            <div class="alloc-t">Allocation</div>
+            <div class="donut-p"></div>
+            <div class="alloc-leg">
+              <div class="al-row"><div class="al-dot" style="background:#3B82F6"></div>Stocks<span class="al-pct" style="color:#3B82F6">62%</span></div>
+              <div class="al-row"><div class="al-dot" style="background:#A855F7"></div>ETFs<span class="al-pct" style="color:#A855F7">25%</span></div>
+              <div class="al-row"><div class="al-dot" style="background:#F59E0B"></div>Crypto<span class="al-pct" style="color:#F59E0B">10%</span></div>
+              <div class="al-row"><div class="al-dot" style="background:#00D4A1"></div>Cash<span class="al-pct" style="color:#00D4A1">3%</span></div>
+            </div>
+          </div>
+          <div class="holdings-c">
+            <div class="hc-title">Holdings</div>
+            <div class="hold-row2"><div class="h-tick" style="background:rgba(59,130,246,.15);color:#3B82F6">AAPL</div><div class="h-info2"><div class="h-name2">Apple Inc.</div><div class="h-type2">Stock</div></div><div class="h-right"><div class="h-val2">£2,842.50</div><div class="h-gain2 pos">▲ +14.8%</div></div></div>
+            <div class="hold-row2"><div class="h-tick" style="background:rgba(0,212,161,.15);color:#00D4A1">MSFT</div><div class="h-info2"><div class="h-name2">Microsoft</div><div class="h-type2">Stock</div></div><div class="h-right"><div class="h-val2">£3,031.20</div><div class="h-gain2 pos">▲ +22.2%</div></div></div>
+            <div class="hold-row2"><div class="h-tick" style="background:rgba(239,68,68,.15);color:#EF4444">TSLA</div><div class="h-info2"><div class="h-name2">Tesla Inc.</div><div class="h-type2">Stock</div></div><div class="h-right"><div class="h-val2">£992.00</div><div class="h-gain2 neg">▼ -19.0%</div></div></div>
+            <div class="hold-row2"><div class="h-tick" style="background:rgba(245,158,11,.15);color:#F59E0B">VOO</div><div class="h-info2"><div class="h-name2">Vanguard S&amp;P 500</div><div class="h-type2">ETF</div></div><div class="h-right"><div class="h-val2">£4,623.00</div><div class="h-gain2 pos">▲ +17.0%</div></div></div>
+          </div>
+        </div>
+      </div>
+      <div class="scene-label">08 · Portfolio</div>
+    </div>
+
+    <!-- ── S9: WALLET ── -->
+    <div class="scene s-wallet" id="scene-8">
+      <div class="wallet-mock">
+        <div class="wallet-head">
+          <h3>💳 Wallet</h3>
+          <div class="wallet-btns">
+            <div class="wbtn wbtn-p">+ Add Card</div>
+            <div class="wbtn wbtn-s">🏦 Link Account</div>
+          </div>
+        </div>
+        <div class="credit-card">
+          <div class="cc-type">Visa · Payment Card</div>
+          <div class="cc-num">4242 •••• •••• 4242</div>
+          <div class="cc-bot">
+            <div><div class="cc-holder">John Smith</div><div class="cc-exp">Expires 09/28</div></div>
+            <div class="cc-network">💳</div>
+          </div>
+        </div>
+        <div class="bank-section">
+          <div class="bs-title">🏦 Linked Bank Accounts</div>
+          <div class="ba-row2"><div class="ba-icon2">🏦</div><div class="ba-info2"><div class="ba-name2">Barclays Current Account</div><div class="ba-acct2">•••• •••• 7821 · Sort: 20-30-40</div></div><div class="ba-bal">£1,284.00</div></div>
+          <div class="ba-row2"><div class="ba-icon2">🏦</div><div class="ba-info2"><div class="ba-name2">Monzo Savings Pot</div><div class="ba-acct2">•••• •••• 3310 · Sort: 04-00-03</div></div><div class="ba-bal">£842.50</div></div>
+        </div>
+      </div>
+      <div class="scene-label">09 · Wallet</div>
+    </div>
+
+    <!-- ── S10: PAYMENTS ── -->
+    <div class="scene s-payments" id="scene-9">
+      <div class="pay-wrap">
+        <div class="send-form2">
+          <div class="sf-title">💸 Send Money</div>
+          <div class="sf-recipient">
+            <div class="sf-avatar" style="background:linear-gradient(135deg,#00D4A1,#3B82F6)">SJ</div>
+            <div><div class="sf-rname">Sarah Johnson</div><div class="sf-rsub">sarah@example.com</div></div>
+          </div>
+          <div class="sf-amount-area">
+            <div class="sf-big">£25.00</div>
+            <div class="sf-note">Available: £3,842.50</div>
+          </div>
+          <div style="background:rgba(255,255,255,.06);border-radius:8px;padding:8px 10px;font-size:10px;color:rgba(255,255,255,.5);margin-bottom:10px;animation:slide-up .5s ease .5s both">📝 Dinner last week — thanks!</div>
+          <div class="sf-btn">Send £25.00 →</div>
+        </div>
+        <div class="recents-panel">
+          <div class="rp-title">Recent Sends</div>
+          <div class="rp-row"><div class="rp-av" style="background:linear-gradient(135deg,#00D4A1,#3B82F6)">SJ</div><div class="rp-info"><div class="rp-name">Sarah Johnson</div><div class="rp-date">Today · Dinner</div></div><div class="rp-amt">-£25.00</div></div>
+          <div class="rp-row"><div class="rp-av" style="background:linear-gradient(135deg,#A855F7,#3B82F6)">MP</div><div class="rp-info"><div class="rp-name">Mike Peters</div><div class="rp-date">Yesterday · Uber</div></div><div class="rp-amt">-£12.50</div></div>
+          <div class="rp-row"><div class="rp-av" style="background:linear-gradient(135deg,#F59E0B,#EF4444)">AL</div><div class="rp-info"><div class="rp-name">Amy Lee</div><div class="rp-date">Mon · Groceries</div></div><div class="rp-amt">-£18.00</div></div>
+        </div>
+      </div>
+      <div class="scene-label">10 · Payments</div>
+    </div>
+
+    <!-- ── S11: MOBILE APP ── -->
+    <div class="scene s-mobile" id="scene-10">
+      <div class="mobile-wrap">
+        <div class="phone-frame">
+          <div class="phone-notch2"></div>
+          <div class="phone-screen2">
+            <div class="ps-logo-icon">∞</div>
+            <div class="ps-app-name">HAY-M</div>
+            <div class="ps-tagline">Save Smart, Invest Smartly.</div>
+            <div class="ps-tabs">
+              <div class="ps-tab active">Dashboard</div>
+              <div class="ps-tab">Savings</div>
+              <div class="ps-tab">Portfolio</div>
+            </div>
+          </div>
+          <div class="phone-tab-bar">
+            <div class="ptb-item active"><div class="ptb-icon">🏠</div><div class="ptb-label">Home</div></div>
+            <div class="ptb-item"><div class="ptb-icon">💰</div><div class="ptb-label">Savings</div></div>
+            <div class="ptb-item"><div class="ptb-icon">📈</div><div class="ptb-label">Portfolio</div></div>
+            <div class="ptb-item"><div class="ptb-icon">💳</div><div class="ptb-label">Payments</div></div>
+            <div class="ptb-item"><div class="ptb-icon">👤</div><div class="ptb-label">Profile</div></div>
+          </div>
+        </div>
+        <div class="phone-info2">
+          <div class="pi-title">Available on iOS &amp; Android</div>
+          <div class="pi-sub">The full HAY-M experience in your pocket — built with React Native and Expo.</div>
+          <div class="pi-features">
+            <div class="pi-f"><div class="pi-check">✓</div><div class="pi-text">Dashboard with live balance</div></div>
+            <div class="pi-f"><div class="pi-check">✓</div><div class="pi-text">Auto round-up tracker</div></div>
+            <div class="pi-f"><div class="pi-check">✓</div><div class="pi-text">Goals with progress tracking</div></div>
+            <div class="pi-f"><div class="pi-check">✓</div><div class="pi-text">Portfolio &amp; investments</div></div>
+            <div class="pi-f"><div class="pi-check">✓</div><div class="pi-text">Instant money transfers</div></div>
+          </div>
+        </div>
+      </div>
+      <div class="scene-label">11 · Mobile App</div>
+    </div>
+
+    <!-- ── S12: REAL-TIME SYNC ── -->
+    <div class="scene s-sync" id="scene-11">
+      <div class="sync-wrap">
+        <div class="sync-phone2">
+          <div class="sph-notch"></div>
+          <div class="sph-screen">
+            <div class="sph-label">Savings Balance</div>
+            <div class="sph-amount">£428.60</div>
+            <div class="sph-save-btn">+ Save £25 now</div>
+            <div class="sph-badge">✅ £25 saved on phone!</div>
+          </div>
+        </div>
+        <div class="sync-middle">
+          <div class="sync-arrows">
+            <div class="sarr r">→</div>
+            <div class="sarr l">←</div>
+          </div>
+          <div class="sync-bolt2">⚡</div>
+          <div class="sync-label2">Live Sync</div>
+        </div>
+        <div class="sync-laptop2">
+          <div class="sl-screen">
+            <div class="sl-bar2">
+              <div class="slb2" style="background:#FF5F57"></div>
+              <div class="slb2" style="background:#FEBC2E"></div>
+              <div class="slb2" style="background:#28C840"></div>
+            </div>
+            <div class="sl-content">
+              <div class="slc-label">Savings Balance</div>
+              <div class="slc-amount">£453.60</div>
+              <div class="slc-badge">⚡ Updated in real-time</div>
+            </div>
+          </div>
+          <div class="sl-base"></div>
+          <div class="sl-stand"></div>
+        </div>
+        <div class="sync-info">
+          <div class="si-title">Real-Time Sync</div>
+          <div class="si-item"><div class="si-dot"></div><span>WebSocket connection keeps both app and web in sync instantly</span></div>
+          <div class="si-item"><div class="si-dot"></div><span>No refresh needed — changes appear automatically</span></div>
+          <div class="si-item"><div class="si-dot"></div><span>Works across savings, portfolio and payments</span></div>
+        </div>
+      </div>
+      <div class="scene-label">12 · Real-Time Sync</div>
+    </div>
+
+    <!-- ── S13: OUTRO ── -->
+    <div class="scene s-outro" id="scene-12">
+      <div class="dots-bg" id="dots-bg-outro"></div>
+      <div class="outro-wrap" style="position:relative;z-index:2">
+        <div class="outro-logo">∞</div>
+        <div class="outro-brand">HAY-M</div>
+        <div class="outro-tagline">Save Smart · Invest Smartly</div>
+        <div class="outro-url">🌐 hay-m.com</div>
+        <div class="outro-stats">
+          <div class="os"><div class="os-val">6</div><div class="os-label">Core Features</div></div>
+          <div class="outro-divider"></div>
+          <div class="os"><div class="os-val">2</div><div class="os-label">Platforms</div></div>
+          <div class="outro-divider"></div>
+          <div class="os"><div class="os-val">£0</div><div class="os-label">To Get Started</div></div>
+          <div class="outro-divider"></div>
+          <div class="os"><div class="os-val">24/7</div><div class="os-label">Always On</div></div>
+        </div>
+      </div>
+      <div class="scene-label">13 · Get Started</div>
+    </div>
+
+    <!-- Subtitle bar -->
+    <div id="subtitle-bar"><p id="subtitle-text"></p></div>
+  </div><!-- /stage -->
+
+  <!-- Controls -->
+  <div id="controls">
+    <button id="play-btn" title="Play / Pause">
+      <svg id="icon-play"  viewBox="0 0 16 16"><polygon points="4,2 14,8 4,14"/></svg>
+      <svg id="icon-pause" viewBox="0 0 16 16" style="display:none"><rect x="3" y="2" width="4" height="12" rx="1"/><rect x="9" y="2" width="4" height="12" rx="1"/></svg>
+    </button>
+    <div id="progress-wrap" title="Click to seek">
+      <div id="progress-fill"></div>
+    </div>
+    <div id="timer">0:00 / 1:48</div>
+    <div id="scene-dots"></div>
+  </div>
+</div><!-- /player-wrapper -->
+
+<!-- Voiceover Script -->
+<div id="script-section">
+  <h2>🎙 Voiceover Script</h2>
+  <div id="script-lines"></div>
+</div>
+
+<!-- Export note -->
+<div class="export-note">
+  <div class="note-icon">💡</div>
+  <p>
+    <strong>To create an actual video:</strong> Open this HTML file in your browser, then use
+    <strong>Loom</strong> or <strong>OBS Studio</strong> to screen-record it while it plays.
+    Paste the script above into <strong>ElevenLabs.io</strong> or <strong>Murf.ai</strong> to generate a professional AI voiceover,
+    then combine both in <strong>CapCut</strong> or <strong>DaVinci Resolve</strong>.
+  </p>
+</div>
+
+<script>
+// ─── Scene data ───────────────────────────────────────────────────────────────
+const SCENES = [
+  { name:'Introduction',       duration:6500,  start:0,
+    vo:"Introducing HAY-M — the micro-savings and investment platform built for your financial future. Save automatically, invest smartly, and watch your wealth grow." },
+  { name:'How Round-Ups Work', duration:8000,  start:6.5,
+    vo:"Every purchase you make gets rounded up to the nearest pound. The spare change — whether it's 30p on a coffee or £1.40 on petrol — is saved automatically. Small amounts compound into big savings." },
+  { name:'Website Landing',    duration:8000,  start:14.5,
+    vo:"Visit hay-m.com to get started. The landing page showcases all features — auto round-ups, smart goals, portfolio tracking, and instant payments — all powered by a React and Node.js stack." },
+  { name:'Sign Up',            duration:7500,  start:22.5,
+    vo:"Sign up takes seconds. Enter your name, email, phone number, and a password. Your account is secured with industry-standard JWT authentication and your session stays private." },
+  { name:'Dashboard',          duration:9000,  start:30,
+    vo:"Your Dashboard is your financial command centre. See your total balance, micro-savings total, active goals, portfolio value, and recent activity — everything at a glance, updated in real time." },
+  { name:'Micro-Savings',      duration:8500,  start:39,
+    vo:"The Micro-Savings Tracker logs every round-up automatically. Costa Coffee, BP Petrol, Sainsbury's — every penny is captured. You can also add manual savings anytime with a single click." },
+  { name:'Savings Goals',      duration:8500,  start:47.5,
+    vo:"Create Goals for what matters most — a Maldives holiday, a new car, a house deposit, or an emergency fund. Visual progress bars keep you motivated, and you can add funds to any goal at any time." },
+  { name:'Portfolio',          duration:8500,  start:56,
+    vo:"The Portfolio page tracks all your investments in real time. Stocks like Apple and Microsoft, ETFs like Vanguard S&P 500, and crypto — with gain and loss calculations and an animated allocation chart." },
+  { name:'Wallet',             duration:8000,  start:64.5,
+    vo:"The Wallet holds your payment cards and linked bank accounts in one place. Add a new debit or credit card, or link your bank account with your sort code and account number in seconds." },
+  { name:'Payments',           duration:8000,  start:72.5,
+    vo:"Send money to friends and family directly from the Payments page. Type a name, enter an amount, add a note, and hit send. Your balance updates instantly and the recipient is notified in real time." },
+  { name:'Mobile App',         duration:8500,  start:80.5,
+    vo:"The HAY-M mobile app brings everything to your pocket. Built with React Native and Expo, it's available on both iOS and Android — with the same dashboard, savings tracker, goals, portfolio, and payments." },
+  { name:'Real-Time Sync',     duration:8000,  start:89,
+    vo:"Changes sync instantly between your phone and the website using live WebSocket technology. Save money on your phone and it appears on the web in real time — no refresh, no delay." },
+  { name:'Get Started',        duration:7000,  start:97,
+    vo:"HAY-M. Save Smart, Invest Smartly. Six powerful features, two platforms, and completely free to get started. Visit hay-m.com today and begin your savings journey." },
+];
+
+const TOTAL_DURATION = SCENES.reduce((s,sc) => s + sc.duration, 0); // ms
+
+// ─── State ────────────────────────────────────────────────────────────────────
+let currentScene = 0;
+let playing      = false;
+let elapsed      = 0;       // ms into current scene
+let totalElapsed = 0;       // ms from start
+let lastTick     = null;
+let rafId        = null;
+
+// ─── DOM refs ─────────────────────────────────────────────────────────────────
+const sceneEls    = Array.from(document.querySelectorAll('.scene'));
+const subtitleEl  = document.getElementById('subtitle-text');
+const progressEl  = document.getElementById('progress-fill');
+const timerEl     = document.getElementById('timer');
+const playBtn     = document.getElementById('play-btn');
+const iconPlay    = document.getElementById('icon-play');
+const iconPause   = document.getElementById('icon-pause');
+const dotsWrap    = document.getElementById('scene-dots');
+const scriptWrap  = document.getElementById('script-lines');
+
+// ─── Build scene dots ─────────────────────────────────────────────────────────
+SCENES.forEach((sc, i) => {
+  const d = document.createElement('div');
+  d.className = 'sdot' + (i === 0 ? ' active' : '');
+  d.title = sc.name;
+  d.addEventListener('click', () => jumpTo(i));
+  dotsWrap.appendChild(d);
+});
+
+// ─── Build script lines ───────────────────────────────────────────────────────
+SCENES.forEach((sc, i) => {
+  const ts = formatTime(sc.start * 1000);
+  const div = document.createElement('div');
+  div.className = 'sline';
+  div.id = 'sl-' + i;
+  div.innerHTML = `<span class="sl-ts">${ts}</span><span class="sl-name">${sc.name}</span><span class="sl-text">${sc.vo}</span>`;
+  div.addEventListener('click', () => jumpTo(i));
+  scriptWrap.appendChild(div);
+});
+
+// ─── Build floating particles ─────────────────────────────────────────────────
+['dots-bg','dots-bg-outro'].forEach(id => {
+  const el = document.getElementById(id);
+  if (!el) return;
+  for (let i = 0; i < 18; i++) {
+    const p = document.createElement('div');
+    p.className = 'dot-p';
+    p.style.cssText = `left:${Math.random()*100}%;top:${Math.random()*100}%;animation-delay:${Math.random()*4}s;animation-duration:${3+Math.random()*3}s;opacity:${0.2+Math.random()*.5}`;
+    el.appendChild(p);
+  }
+});
+
+// ─── Helper: format ms → m:ss ─────────────────────────────────────────────────
+function formatTime(ms) {
+  const s = Math.floor(ms / 1000);
+  return `${Math.floor(s/60)}:${String(s%60).padStart(2,'0')}`;
+}
+
+// ─── Show scene ───────────────────────────────────────────────────────────────
+function showScene(idx, immediate) {
+  sceneEls.forEach((el, i) => el.classList.toggle('active', i === idx));
+  subtitleEl.textContent = SCENES[idx].vo;
+  // dots
+  document.querySelectorAll('.sdot').forEach((d,i) => d.classList.toggle('active', i === idx));
+  // script highlight
+  document.querySelectorAll('.sline').forEach((d,i) => d.classList.toggle('playing', i === idx));
+  document.getElementById('sl-' + idx)?.scrollIntoView({behavior:'smooth', block:'nearest'});
+}
+
+// ─── Jump to scene ────────────────────────────────────────────────────────────
+function jumpTo(idx) {
+  currentScene = idx;
+  elapsed = 0;
+  totalElapsed = SCENES.slice(0, idx).reduce((s,sc) => s + sc.duration, 0);
+  showScene(idx);
+  updateHUD();
+  if (!playing) { playing = true; startLoop(); updatePlayBtn(); }
+}
+
+// ─── Update progress bar + timer ──────────────────────────────────────────────
+function updateHUD() {
+  const pct = Math.min(100, (totalElapsed / TOTAL_DURATION) * 100);
+  progressEl.style.width = pct + '%';
+  const remaining = TOTAL_DURATION - totalElapsed;
+  timerEl.textContent = formatTime(totalElapsed) + ' / ' + formatTime(TOTAL_DURATION);
+}
+
+// ─── Play / pause toggle ──────────────────────────────────────────────────────
+function updatePlayBtn() {
+  iconPlay.style.display  = playing ? 'none' : 'block';
+  iconPause.style.display = playing ? 'block' : 'none';
+}
+
+playBtn.addEventListener('click', () => {
+  if (playing) {
+    playing = false;
+    if (rafId) { cancelAnimationFrame(rafId); rafId = null; }
+    lastTick = null;
+  } else {
+    if (currentScene >= SCENES.length - 1 && elapsed >= SCENES[currentScene].duration) {
+      jumpTo(0); return;
+    }
+    playing = true;
+    startLoop();
+  }
+  updatePlayBtn();
+});
+
+// ─── Progress bar click seek ──────────────────────────────────────────────────
+document.getElementById('progress-wrap').addEventListener('click', e => {
+  const rect = e.currentTarget.getBoundingClientRect();
+  const pct = (e.clientX - rect.left) / rect.width;
+  const target = pct * TOTAL_DURATION;
+  let acc = 0;
+  for (let i = 0; i < SCENES.length; i++) {
+    if (acc + SCENES[i].duration >= target) {
+      currentScene = i;
+      elapsed = target - acc;
+      totalElapsed = target;
+      showScene(i);
+      updateHUD();
+      if (!playing) { playing = true; startLoop(); updatePlayBtn(); }
+      return;
+    }
+    acc += SCENES[i].duration;
+  }
+});
+
+// ─── RAF loop ─────────────────────────────────────────────────────────────────
+function startLoop() {
+  lastTick = performance.now();
+  function tick(now) {
+    if (!playing) return;
+    const dt = now - lastTick;
+    lastTick = now;
+    elapsed      += dt;
+    totalElapsed += dt;
+    // advance scene if needed
+    while (elapsed >= SCENES[currentScene].duration) {
+      elapsed -= SCENES[currentScene].duration;
+      currentScene++;
+      if (currentScene >= SCENES.length) {
+        // end of video
+        currentScene = SCENES.length - 1;
+        elapsed = SCENES[currentScene].duration;
+        totalElapsed = TOTAL_DURATION;
+        playing = false;
+        updatePlayBtn();
+        updateHUD();
+        return;
+      }
+      showScene(currentScene);
+    }
+    updateHUD();
+    rafId = requestAnimationFrame(tick);
+  }
+  rafId = requestAnimationFrame(tick);
+}
+
+// ─── Init ─────────────────────────────────────────────────────────────────────
+showScene(0);
+updateHUD();
+
+// Auto-play after short delay
+setTimeout(() => {
+  playing = true;
+  startLoop();
+  updatePlayBtn();
+}, 800);
+</script>
+</body>
+</html>
